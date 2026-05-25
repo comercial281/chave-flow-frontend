@@ -19,11 +19,13 @@ import {
   Reply,
   PenLine,
   MessageSquareText,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { AudioRecordingData } from '@/hooks/chat/useAudioRecorder';
 import { useCannedResponses } from '@/hooks/chat/useCannedResponses';
+import { useQuickReplies } from '@/hooks/chat/useQuickReplies';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +38,7 @@ import AudioRecorder from '../audio';
 
 import { AIAssistanceButton } from '../ai-assistance';
 import { CannedResponsesList } from '../canned-responses';
+import { QuickRepliesList } from '../quick-replies';
 import { RichTextEditor, RichTextEditorRef } from '../rich-text-editor';
 
 import { ReplyMode, Message } from '@/types/chat/api';
@@ -125,6 +128,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const { searchCannedResponses, isLoading: isCannedResponsesLoading } = useCannedResponses({
     enabled: !!inboxId,
   });
+
+  // 🎯 QUICK REPLIES
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const { quickReplies, isLoading: isQuickRepliesLoading } = useQuickReplies();
 
   const hasCannedMedia =
     !!selectedCannedResponse &&
@@ -356,6 +363,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
       }
     },
     [onSendMessage, t],
+  );
+
+  const handleSelectQuickReply = useCallback(
+    (reply: import('@/types/knowledge').QuickReply) => {
+      richEditorRef.current?.setContent(reply.content);
+      setCurrentEditorMessage(reply.content);
+      setShowQuickReplies(false);
+      setTimeout(() => richEditorRef.current?.focus(), 0);
+    },
+    [],
   );
 
   // 🎯 CANNED RESPONSES: Abrir/fechar dropdown via botão
@@ -626,6 +643,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
             />
           )}
 
+          {/* 🎯 QUICK REPLIES: Dropdown */}
+          {showQuickReplies && (
+            <QuickRepliesList
+              quickReplies={quickReplies}
+              isLoading={isQuickRepliesLoading}
+              onSelect={handleSelectQuickReply}
+              onClose={() => setShowQuickReplies(false)}
+            />
+          )}
+
           {/* Primeira linha: Reply Mode Toggle + Botões de ação rápida */}
           <div className="flex items-center justify-between mb-3 gap-3">
             {/* Reply Mode Toggle */}
@@ -721,6 +748,18 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 title={t('messageInput.cannedResponses.tooltip')}
               >
                 <MessageSquareText className="h-4 w-4" />
+              </Button>
+
+              {/* Quick Replies Button */}
+              <Button
+                variant={showQuickReplies ? 'default' : 'ghost'}
+                size="icon"
+                disabled={isDisabled || isSending || isPendingConversation}
+                className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
+                onClick={() => setShowQuickReplies(v => !v)}
+                title="Respostas Rápidas"
+              >
+                <Zap className="h-4 w-4" />
               </Button>
 
               {/* Template Button */}

@@ -1,3 +1,26 @@
+// QuickReply Types
+
+export interface QuickReply {
+  id: string;
+  title: string;
+  content: string;
+  shared: boolean;
+  user_id: string | null;
+  usage_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface QuickReplyFormData {
+  title: string;
+  content: string;
+  shared?: boolean;
+}
+
+export interface QuickRepliesResponse {
+  data: QuickReply[];
+}
+
 // CannedResponses Types
 
 export interface CannedResponseAttachment {
