@@ -1,19 +1,23 @@
 import { useId, useMemo, useState } from 'react';
-import { Plus, X, AlertTriangle } from 'lucide-react';
+import { Plus, X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
 import {
   Button,
   Checkbox,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
   Input,
   Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@evoapi/design-system';
+import { cn } from '@/lib/utils';
 import { getEvent, isCustomEvent, type FieldSpec } from '@/lib/events-manifest';
 import { useLanguage } from '@/hooks/useLanguage';
-import { cn } from '@/lib/utils';
 
 export type EventPropertiesValue = Record<string, unknown>;
 
@@ -143,6 +147,8 @@ function SchemaDrivenFields({
               onAdd={handleAddOptional}
               disabled={disabled}
               label={t('propertiesForm.addFieldLabel')}
+              searchPlaceholder={t('propertiesForm.addFieldSearchPlaceholder')}
+              noResultsLabel={t('propertiesForm.noResultsLabel')}
             />
           )}
         </FieldSection>
@@ -271,35 +277,64 @@ function dateInputValue(raw: unknown): string {
   return d.toISOString().slice(0, 16);
 }
 
+// Per card: "Campos opcionais como 'Add field' expandível com autocomplete
+// da lista" — searchable typeahead picker built on cmdk Command, mirroring
+// the EventSelector pattern.
 function OptionalFieldPicker({
   fields,
   onAdd,
   disabled,
   label,
+  searchPlaceholder,
+  noResultsLabel,
 }: {
   fields: string[];
   onAdd: (field: string) => void;
   disabled?: boolean;
   label: string;
+  searchPlaceholder: string;
+  noResultsLabel: string;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Select
-      onValueChange={(field) => {
-        if (field) onAdd(field);
-      }}
-      disabled={disabled}
-    >
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder={label} />
-      </SelectTrigger>
-      <SelectContent>
-        {fields.map((field) => (
-          <SelectItem key={field} value={field}>
-            {field}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          disabled={disabled}
+          className="w-full justify-between font-normal text-muted-foreground"
+        >
+          <span>{label}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList>
+            <CommandEmpty>{noResultsLabel}</CommandEmpty>
+            <CommandGroup>
+              {fields.map((field) => (
+                <CommandItem
+                  key={field}
+                  value={field}
+                  onSelect={() => {
+                    onAdd(field);
+                    setOpen(false);
+                  }}
+                >
+                  {field}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 

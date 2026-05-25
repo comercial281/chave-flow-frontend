@@ -22,6 +22,8 @@
     "customAddLabel": "+ Adicionar propriedade",
     "requiredFieldMissing": "Campo obrigatório",
     "customWarning": "Eventos personalizados não são validados por schema",
-    "customRemoveAriaLabel": "Remover propriedade"
+    "customRemoveAriaLabel": "Remover propriedade",
+    "addFieldSearchPlaceholder": "Buscar campo...",
+    "noResultsLabel": "Nenhum campo encontrado"
   }
 }
