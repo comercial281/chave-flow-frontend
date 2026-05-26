@@ -14,6 +14,7 @@ import DashboardFiltersDialog from './components/DashboardFiltersDialog';
 import DashboardMetricsSection from './components/DashboardMetricsSection';
 import DashboardTrendsSection from './components/DashboardTrendsSection';
 import DashboardPerformanceSection from './components/DashboardPerformanceSection';
+import ImobSummarySection from './components/ImobSummarySection';
 import type { DashboardFilterState, DashboardOption } from './components/types';
 import { DashboardTour } from '@/tours';
 
@@ -288,6 +289,8 @@ const CustomerDashboardPage = () => {
           {currentPeriodLabel} ({data.period.days} dias)
         </Badge>
       </div>
+
+      <ImobSummarySection />
 
       <div data-tour="dashboard-metrics">
         <DashboardMetricsSection data={data} t={t} />
