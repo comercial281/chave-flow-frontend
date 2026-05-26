@@ -141,7 +141,13 @@ function NewClientModal({ open, onClose, onCreate }: {
       onClose();
       setForm({ name: '', admin_email: '', admin_name: '' });
     } catch (e: any) {
-      setError(e?.response?.data?.errors?.join(', ') ?? 'Erro ao criar instância');
+      const d = e?.response?.data;
+      setError(
+        d?.errors?.join(', ') ??
+        d?.error ??
+        d?.message ??
+        'Erro ao criar instância'
+      );
     } finally {
       setLoading(false);
     }

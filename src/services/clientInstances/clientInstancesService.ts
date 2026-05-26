@@ -24,18 +24,18 @@ export interface CreateClientInstancePayload {
 
 const clientInstancesService = {
   list: () =>
-    apiClient.get<{ data: ClientInstance[] }>('/api/v1/client_instances'),
+    apiClient.get<{ data: ClientInstance[] }>('/client_instances'),
 
   get: (id: number) =>
-    apiClient.get<{ data: ClientInstance }>(`/api/v1/client_instances/${id}`),
+    apiClient.get<{ data: ClientInstance }>(`/client_instances/${id}`),
 
   create: (payload: CreateClientInstancePayload) =>
-    apiClient.post<{ data: ClientInstance }>('/api/v1/client_instances', {
+    apiClient.post<{ data: ClientInstance }>('/client_instances', {
       client_instance: payload,
     }),
 
   delete: (id: number) =>
-    apiClient.delete(`/api/v1/client_instances/${id}`),
+    apiClient.delete(`/client_instances/${id}`),
 };
 
 export default clientInstancesService;
