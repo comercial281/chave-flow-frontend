@@ -180,6 +180,13 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
     action: 'read',
   },
   {
+    name: 'Clientes CRM',
+    href: '/super-admin/clients',
+    icon: Building2,
+    resource: 'client_instances',
+    action: 'read',
+  },
+  {
     name: t('menu.customer.tutorials'),
     href: '/tutorials',
     icon: GraduationCap,

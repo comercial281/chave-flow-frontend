@@ -59,6 +59,7 @@ import { Properties } from '@/pages/Customer/Properties';
 import { Visits } from '@/pages/Customer/Visits';
 import { Proposals } from '@/pages/Customer/Proposals';
 import { PropertyCaptureRequests } from '@/pages/Customer/PropertyCapture';
+import ClientInstances from '@/pages/SuperAdmin/ClientInstances';
 import { PropertyInterests } from '@/pages/Customer/PropertyInterests';
 import { Macros } from '@/pages/Customer/Settings/Macros';
 import { Integrations } from '@/pages/Customer/Settings/Integrations';
@@ -1457,6 +1458,18 @@ const AppRouter = () => {
               <PrivateRoute>
                 <MainLayout>
                   <Profile />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Super Admin — gerenciamento de instâncias de clientes */}
+          <Route
+            path="/super-admin/clients"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ClientInstances />
                 </MainLayout>
               </PrivateRoute>
             }
