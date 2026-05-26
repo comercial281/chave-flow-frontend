@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@evoapi/design-system';
 import {
-  Plus, Edit, Trash2, FileText, GripVertical, ChevronDown, ChevronUp,
+  Plus, Edit, Trash2, FileText, GripVertical,
   ToggleLeft, ToggleRight, X, ClipboardList,
 } from 'lucide-react';
 import {
@@ -30,8 +30,6 @@ import {
   FormFieldFormData,
   FIELD_TYPE_LABELS,
   ROLE_TYPE_LABELS,
-  SUBMISSION_STATUS_LABELS,
-  SUBMISSION_STATUS_COLORS,
 } from '@/services/dynamicForms/dynamicFormsService';
 
 const FIELD_TYPES = Object.entries(FIELD_TYPE_LABELS);

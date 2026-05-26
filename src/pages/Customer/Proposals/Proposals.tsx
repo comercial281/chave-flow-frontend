@@ -1,35 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search, Plus, FileText, Building2, User, TrendingUp,
-  Send, CheckCircle, XCircle, AlertCircle, RefreshCw, ChevronDown,
-  DollarSign, Calendar, Filter,
+  Send, CheckCircle, XCircle, RefreshCw, ChevronDown,
+  DollarSign, Calendar,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
+  Button,
+  Input,
+  Badge,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
+  Label,
+  Textarea,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@evoapi/design-system';
 import {
   proposalsService,
   Proposal,
@@ -84,8 +79,6 @@ interface RejectModalState { open: boolean; proposalId: string; reason: string }
 interface CounterModalState { open: boolean; proposalId: string; value: string }
 
 export default function Proposals() {
-  const { t } = useTranslation();
-
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -407,7 +400,7 @@ export default function Proposals() {
       </Dialog>
 
       {/* Reject Modal */}
-      <Dialog open={rejectModal.open} onOpenChange={o => setRejectModal(s => ({ ...s, open: o }))}>
+      <Dialog open={rejectModal.open} onOpenChange={(o: boolean) => setRejectModal(s => ({ ...s, open: o }))}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Rejeitar Proposta</DialogTitle>
@@ -417,7 +410,7 @@ export default function Proposals() {
             <Textarea
               placeholder="Informe o motivo..."
               value={rejectModal.reason}
-              onChange={e => setRejectModal(s => ({ ...s, reason: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectModal(s => ({ ...s, reason: e.target.value }))}
               rows={3}
               className="mt-1"
             />
@@ -434,7 +427,7 @@ export default function Proposals() {
       </Dialog>
 
       {/* Counter Modal */}
-      <Dialog open={counterModal.open} onOpenChange={o => setCounterModal(s => ({ ...s, open: o }))}>
+      <Dialog open={counterModal.open} onOpenChange={(o: boolean) => setCounterModal(s => ({ ...s, open: o }))}>
         <DialogContent className="sm:max-w-[380px]">
           <DialogHeader>
             <DialogTitle>Enviar Contra-proposta</DialogTitle>
@@ -445,7 +438,7 @@ export default function Proposals() {
               type="number"
               placeholder="0,00"
               value={counterModal.value}
-              onChange={e => setCounterModal(s => ({ ...s, value: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCounterModal(s => ({ ...s, value: e.target.value }))}
               className="mt-1"
             />
           </div>

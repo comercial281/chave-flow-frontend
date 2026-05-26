@@ -15,7 +15,7 @@ import {
 } from '@evoapi/design-system';
 import {
   Globe, Plus, Edit, Trash2, FileText, Newspaper,
-  ExternalLink, Eye, EyeOff, Archive, Send, RefreshCw, Users,
+  ExternalLink, Archive, Send, RefreshCw, Users,
 } from 'lucide-react';
 import {
   siteBuilderService,
@@ -487,7 +487,7 @@ export default function SiteBuilder() {
                 <div key={f.key}>
                   <UILabel>{f.label}</UILabel>
                   <Input
-                    value={(siteForm as Record<string, string>)[f.key] ?? ''}
+                    value={(siteForm as unknown as Record<string, string>)[f.key] ?? ''}
                     onChange={e => setF({ [f.key]: e.target.value } as Partial<SiteFormData>)}
                     placeholder={f.placeholder}
                     className="mt-1"
@@ -531,7 +531,7 @@ export default function SiteBuilder() {
                 <div key={f.key}>
                   <UILabel>{f.label}</UILabel>
                   <Input
-                    value={(siteForm as Record<string, string>)[f.key] ?? ''}
+                    value={(siteForm as unknown as Record<string, string>)[f.key] ?? ''}
                     onChange={e => setF({ [f.key]: e.target.value } as Partial<SiteFormData>)}
                     placeholder={f.placeholder}
                     className="mt-1 font-mono text-sm"

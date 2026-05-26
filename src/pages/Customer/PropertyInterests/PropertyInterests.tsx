@@ -26,7 +26,7 @@ import {
   INTEREST_STAGE_COLORS,
 } from '@/services/propertyInterests/propertyInterestsService';
 import { propertiesService, Property } from '@/services/properties/propertiesService';
-import contactsService from '@/services/contacts/contactsService';
+import { contactsService } from '@/services/contacts/contactsService';
 import type { Contact } from '@/types/contacts';
 
 const STAGE_FILTERS = [

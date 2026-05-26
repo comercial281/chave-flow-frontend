@@ -860,11 +860,6 @@ function PropertyCard({
   );
 }
 
-function formatCurrency(v?: number | null): string | null {
-  if (v == null) return null;
-  return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`;
-}
-
 function PropertyPhotosDialog({
   property,
   onClose,

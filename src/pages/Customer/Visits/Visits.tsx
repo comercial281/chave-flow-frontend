@@ -35,7 +35,7 @@ import {
   VISIT_STATUS_COLORS,
 } from '@/services/visits/visitsService';
 import { propertiesService, Property } from '@/services/properties/propertiesService';
-import contactsService from '@/services/contacts/contactsService';
+import { contactsService } from '@/services/contacts/contactsService';
 import type { Contact } from '@/types/contacts';
 import { usersService } from '@/services/users';
 import type { User } from '@/types/users';
@@ -56,15 +56,6 @@ const EMPTY_FORM: VisitFormData = {
   duration_minutes: 60,
   notes: '',
 };
-
-function formatDateTime(iso: string) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleString('pt-BR', {
-    weekday: 'short', day: '2-digit', month: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
 
 function groupByDate(visits: Visit[]): Map<string, Visit[]> {
   const map = new Map<string, Visit[]>();

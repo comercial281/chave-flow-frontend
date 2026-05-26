@@ -1,26 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Search, RefreshCw, CheckCircle, XCircle, Building2, User,
-  Phone, Mail, MapPin, DollarSign, ChevronDown, ClipboardList,
+  Phone, Mail, MapPin, DollarSign, ClipboardList,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
+  Button,
+  Input,
+  Badge,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  Label,
+  Textarea,
+} from '@evoapi/design-system';
 import {
   propertyCaptureRequestsService,
   PropertyCaptureRequest,
@@ -199,7 +193,7 @@ export default function PropertyCaptureRequests() {
       </div>
 
       {/* Reject Modal */}
-      <Dialog open={rejectModal.open} onOpenChange={o => setRejectModal(s => ({ ...s, open: o }))}>
+      <Dialog open={rejectModal.open} onOpenChange={(o: boolean) => setRejectModal(s => ({ ...s, open: o }))}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Rejeitar Solicitação</DialogTitle>

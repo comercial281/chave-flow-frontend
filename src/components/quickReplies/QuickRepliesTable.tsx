@@ -1,5 +1,6 @@
 import { Edit, Trash2, Share2 } from 'lucide-react';
 import BaseTable from '@/components/base/BaseTable';
+import type { TableColumn } from '@/components/base/BaseTable';
 import type { QuickReply } from '@/types/knowledge';
 
 interface QuickRepliesTableProps {
@@ -26,12 +27,12 @@ export default function QuickRepliesTable({
   sortOrder,
   onSort,
 }: QuickRepliesTableProps) {
-  const columns = [
+  const columns: TableColumn<Record<string, any>>[] = [
     {
       key: 'title',
       label: 'Título',
       sortable: true,
-      render: (item: QuickReply) => (
+      render: (item: Record<string, any>) => (
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">{item.title}</span>
           {item.shared && (
@@ -46,7 +47,7 @@ export default function QuickRepliesTable({
     {
       key: 'content',
       label: 'Conteúdo',
-      render: (item: QuickReply) => (
+      render: (item: Record<string, any>) => (
         <div className="text-muted-foreground max-w-md">
           <div className="line-clamp-2 whitespace-pre-wrap text-sm">{item.content}</div>
         </div>
@@ -56,7 +57,7 @@ export default function QuickRepliesTable({
       key: 'usage_count',
       label: 'Usos',
       sortable: true,
-      render: (item: QuickReply) => (
+      render: (item: Record<string, any>) => (
         <span className="text-sm text-muted-foreground">{item.usage_count}</span>
       ),
     },
@@ -64,7 +65,7 @@ export default function QuickRepliesTable({
       key: 'created_at',
       label: 'Criado em',
       sortable: true,
-      render: (item: QuickReply) => (
+      render: (item: Record<string, any>) => (
         <span className="text-sm text-muted-foreground">
           {new Date(item.created_at).toLocaleDateString('pt-BR')}
         </span>
@@ -73,16 +74,16 @@ export default function QuickRepliesTable({
     {
       key: 'actions',
       label: '',
-      render: (item: QuickReply) => (
+      render: (item: Record<string, any>) => (
         <div className="flex items-center gap-1 justify-end">
           <button
-            onClick={e => { e.stopPropagation(); onEdit(item); }}
+            onClick={e => { e.stopPropagation(); onEdit(item as QuickReply); }}
             className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
           >
             <Edit className="h-4 w-4" />
           </button>
           <button
-            onClick={e => { e.stopPropagation(); onDelete(item); }}
+            onClick={e => { e.stopPropagation(); onDelete(item as QuickReply); }}
             className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
@@ -94,15 +95,15 @@ export default function QuickRepliesTable({
 
   return (
     <BaseTable
-      data={quickReplies}
+      data={quickReplies as Record<string, any>[]}
       columns={columns}
-      selectedItems={selectedQuickReplies}
+      selectedItems={selectedQuickReplies as Record<string, any>[]}
       loading={loading}
-      onSelectionChange={onSelectionChange}
+      onSelectionChange={onSelectionChange as (items: Record<string, any>[]) => void}
       sortBy={sortBy}
       sortOrder={sortOrder}
       onSort={onSort as (column: string) => void}
-      getItemId={(item: QuickReply) => item.id}
+      getItemId={(item: Record<string, any>) => item.id}
     />
   );
 }
