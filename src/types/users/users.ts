@@ -2,6 +2,8 @@ import { BaseFilter } from "@/types/core";
 import { Role } from "@/types/auth";
 import type { PaginatedResponse, StandardResponse, PaginationMeta } from '@/types/core';
 
+export type CRole = 'agent' | 'manager' | 'admin';
+
 export interface User {
   id: string;
   uid?: string; // OAuth provider UID
@@ -14,6 +16,7 @@ export interface User {
   availability: 'online' | 'busy' | 'offline';
   availability_status?: 'online' | 'busy' | 'offline'; // Alias for availability
   role?: Role;
+  chave_role?: CRole; // Chave Flow role: agent | manager | admin
   confirmed: boolean;
   created_at: string;
   updated_at: string;
@@ -40,6 +43,7 @@ export interface UserUpdateData {
   name?: string;
   email?: string;
   role?: string;
+  chave_role?: CRole;
   auto_offline?: boolean;
   availability?: 'online' | 'busy' | 'offline';
   avatar?: File;

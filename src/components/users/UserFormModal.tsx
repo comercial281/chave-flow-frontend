@@ -15,11 +15,28 @@ import {
 } from '@evoapi/design-system';
 import { toast } from 'sonner';
 import usersService from '@/services/users/usersService';
-import useRoles from '@/hooks/useRoles';
-import type { User, UserFormData, UserUpdateData } from '@/types/users';
-import { Loader2 } from 'lucide-react';
+import type { User, UserFormData, UserUpdateData, CRole } from '@/types/users';
+import { Loader2, Shield } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
+// Chave Flow roles — static, single-tenant
+const CHAVE_ROLES: { value: CRole; label: string; description: string }[] = [
+  {
+    value: 'admin',
+    label: 'Administrador',
+    description: 'Acesso total ao sistema',
+  },
+  {
+    value: 'manager',
+    label: 'Gerente',
+    description: 'Gestão de imóveis, clientes e relatórios',
+  },
+  {
+    value: 'agent',
+    label: 'Corretor',
+    description: 'Atendimento e cadastro de interesse',
+  },
+];
 
 interface UserFormModalProps {
   isOpen: boolean;
@@ -31,16 +48,11 @@ interface UserFormModalProps {
 export default function UserFormModal({ isOpen, onClose, user, onSuccess }: UserFormModalProps) {
   const { t } = useLanguage('users');
 
-  // Buscar system roles
-  const { roles: systemRoles } = useRoles({
-    loadFull: true,
-  });
-
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<UserFormData>({
+  const [formData, setFormData] = useState<UserFormData & { chave_role: CRole }>({
     name: '',
     email: '',
-    role: 'agent',
+    chave_role: 'agent',
     availability: 'online',
     password: '',
     confirmPassword: '',
@@ -52,14 +64,14 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
       setFormData({
         name: user.name,
         email: user.email,
-        role: user.role?.key || 'agent',
+        chave_role: user.chave_role ?? 'agent',
         availability: user.availability || 'online',
       });
     } else {
       setFormData({
         name: '',
         email: '',
-        role: 'agent',
+        chave_role: 'agent',
         availability: 'online',
         password: '',
         confirmPassword: '',
@@ -68,18 +80,13 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
     setErrors({});
   }, [user]);
 
-  const handleFieldChange = (field: keyof UserFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Limpar erro do campo
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
+        const e = { ...prev };
+        delete e[field];
+        return e;
       });
     }
   };
@@ -98,22 +105,18 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
     }
 
     if (!user) {
-      // Validações apenas para criação
       if (!formData.password) {
         newErrors.password = t('form.validation.passwordRequired');
-      } else if (formData.password.length < 6) {
+      } else if ((formData.password?.length ?? 0) < 6) {
         newErrors.password = t('form.validation.passwordMinLength');
       }
-
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = t('form.validation.passwordMismatch');
       }
     } else if (formData.password) {
-      // Validações para atualização (senha opcional)
-      if (formData.password.length < 6) {
+      if ((formData.password?.length ?? 0) < 6) {
         newErrors.password = t('form.validation.passwordMinLength');
       }
-
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = t('form.validation.passwordMismatch');
       }
@@ -130,27 +133,23 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
     setLoading(true);
     try {
       if (user) {
-        // Atualizar usuário
         const updateData: UserUpdateData = {
           name: formData.name,
-          role: formData.role,
+          chave_role: formData.chave_role,
           availability: formData.availability,
         };
-
+        if (formData.password) updateData.password = formData.password;
         await usersService.updateUser(user.id, updateData);
         toast.success(t('form.messages.updateSuccess'));
       } else {
-        // Criar novo usuário
-        const createData: UserFormData = {
+        const createData = {
           name: formData.name,
           email: formData.email,
-          role: formData.role,
+          chave_role: formData.chave_role,
           availability: formData.availability,
           password: formData.password,
-          confirmPassword: formData.confirmPassword,
         };
-
-        await usersService.createUser(createData);
+        await usersService.createUser(createData as UserFormData);
         toast.success(t('form.messages.createSuccess'));
       }
 
@@ -164,6 +163,8 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
     }
   };
 
+  const selectedRole = CHAVE_ROLES.find(r => r.value === formData.chave_role);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-sidebar border-sidebar-border max-w-md">
@@ -174,6 +175,7 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Nome */}
           <div className="space-y-2">
             <Label htmlFor="name">{t('form.fields.name.label')}</Label>
             <Input
@@ -181,14 +183,13 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
               value={formData.name}
               onChange={e => handleFieldChange('name', e.target.value)}
               placeholder={t('form.fields.name.placeholder')}
-              className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${
-                errors.name ? 'border-red-500' : ''
-              }`}
+              className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${errors.name ? 'border-red-500' : ''}`}
               disabled={loading}
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
+          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">{t('form.fields.email.label')}</Label>
             <Input
@@ -197,9 +198,7 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
               value={formData.email}
               onChange={e => handleFieldChange('email', e.target.value)}
               placeholder={t('form.fields.email.placeholder')}
-              className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${
-                errors.email ? 'border-red-500' : ''
-              }`}
+              className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${errors.email ? 'border-red-500' : ''}`}
               disabled={loading || !!user}
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
@@ -210,26 +209,34 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
             )}
           </div>
 
+          {/* Perfil de acesso */}
           <div className="space-y-2">
-            <Label htmlFor="role">{t('form.fields.role.label')}</Label>
+            <Label htmlFor="chave_role" className="flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5" />
+              Perfil de acesso
+            </Label>
             <Select
-              value={formData.role}
-              onValueChange={value => handleFieldChange('role', value)}
+              value={formData.chave_role}
+              onValueChange={value => handleFieldChange('chave_role', value)}
               disabled={loading}
             >
               <SelectTrigger className="bg-sidebar border-sidebar-border text-sidebar-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {systemRoles.map(role => (
-                  <SelectItem key={role.key} value={role.key}>
-                    {role.name}
+                {CHAVE_ROLES.map(role => (
+                  <SelectItem key={role.value} value={role.value}>
+                    <span className="font-medium">{role.label}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {selectedRole && (
+              <p className="text-xs text-sidebar-foreground/60">{selectedRole.description}</p>
+            )}
           </div>
 
+          {/* Disponibilidade */}
           <div className="space-y-2">
             <Label htmlFor="availability">{t('form.fields.availability.label')}</Label>
             <Select
@@ -248,6 +255,7 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
             </Select>
           </div>
 
+          {/* Senha */}
           {(!user || formData.password) && (
             <>
               <div className="space-y-2">
@@ -257,12 +265,10 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
                 <Input
                   id="password"
                   type="password"
-                  value={formData.password}
+                  value={formData.password ?? ''}
                   onChange={e => handleFieldChange('password', e.target.value)}
                   placeholder={t('form.fields.password.placeholder')}
-                  className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${
-                    errors.password ? 'border-red-500' : ''
-                  }`}
+                  className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${errors.password ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
@@ -277,12 +283,10 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
                 <Input
                   id="confirmPassword"
                   type="password"
-                  value={formData.confirmPassword}
+                  value={formData.confirmPassword ?? ''}
                   onChange={e => handleFieldChange('confirmPassword', e.target.value)}
                   placeholder={t('form.fields.confirmPassword.placeholder')}
-                  className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${
-                    errors.confirmPassword ? 'border-red-500' : ''
-                  }`}
+                  className={`bg-sidebar border-sidebar-border text-sidebar-foreground ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 {errors.confirmPassword && (
@@ -302,7 +306,11 @@ export default function UserFormModal({ isOpen, onClose, user, onSuccess }: User
             >
               {t('form.actions.cancel')}
             </Button>
-            <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/85 text-primary-foreground border-0 font-semibold">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-primary hover:bg-primary/85 text-primary-foreground border-0 font-semibold"
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

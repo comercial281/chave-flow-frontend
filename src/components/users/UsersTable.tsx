@@ -61,13 +61,15 @@ export default function UsersTable({
     return t(`details.status.${status}` as any) || t('details.status.offline');
   };
 
-  const getRoleLabel = (user: User) => {
-    // Priorizar role_data se disponível
-    if (user.role && user.role.name) {
-      return user.role.name;
-    }
+  const ROLE_META: Record<string, { label: string; color: string }> = {
+    admin:   { label: 'Administrador', color: 'text-orange-400' },
+    manager: { label: 'Gerente',       color: 'text-purple-400' },
+    agent:   { label: 'Corretor',      color: 'text-blue-400' },
+  };
 
-    return t('card.customRole');
+  const getRoleMeta = (user: User) => {
+    const key = user.chave_role ?? (user.role?.key ?? 'agent');
+    return ROLE_META[key] ?? ROLE_META['agent'];
   };
 
   const columns: TableColumn<User>[] = [
@@ -106,7 +108,9 @@ export default function UsersTable({
       render: user => (
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{getRoleLabel(user)}</span>
+          <span className={`text-sm font-medium ${getRoleMeta(user).color}`}>
+            {getRoleMeta(user).label}
+          </span>
         </div>
       ),
     },

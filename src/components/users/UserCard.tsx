@@ -29,13 +29,15 @@ export default function UserCard({
       .toUpperCase()
       .slice(0, 2) || '?';
 
-  const getRoleLabel = (user: User) => {
-    // Priorizar role_data se disponível
-    if (user.role && user.role.name) {
-      return user.role.name
-    }
-    
-    return t('card.customRole');
+  const ROLE_META: Record<string, { label: string; className: string }> = {
+    admin:   { label: 'Administrador', className: 'text-orange-400' },
+    manager: { label: 'Gerente',       className: 'text-purple-400' },
+    agent:   { label: 'Corretor',      className: 'text-blue-400' },
+  };
+
+  const getRoleMeta = (user: User) => {
+    const key = user.chave_role ?? (user.role?.key ?? 'agent');
+    return ROLE_META[key] ?? ROLE_META['agent'];
   };
 
   return (
@@ -76,7 +78,9 @@ export default function UserCard({
           </div>
           <div className="flex items-center justify-between">
             <span>{t('card.role')}</span>
-            <span className="font-mono">{getRoleLabel(user)}</span>
+            <span className={`font-semibold ${getRoleMeta(user).className}`}>
+              {getRoleMeta(user).label}
+            </span>
           </div>
         </div>
 
