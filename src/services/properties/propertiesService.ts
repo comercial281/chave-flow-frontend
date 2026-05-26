@@ -135,6 +135,15 @@ export const propertiesService = {
       logradouro: string; bairro: string; localidade: string; uf: string;
     };
   },
+
+  async batchGenerateDescriptions(ids: string[]): Promise<Array<{
+    id: string; status: 'ok' | 'error'; headline?: string; description?: string; error?: string;
+  }>> {
+    const res = await api.post('/properties/batch_generate_descriptions', { ids });
+    return (res.data as { data: Array<{ id: string; status: string; headline?: string; description?: string; error?: string }> }).data as Array<{
+      id: string; status: 'ok' | 'error'; headline?: string; description?: string; error?: string;
+    }>;
+  },
 };
 
 export const TRANSACTION_TYPE_LABELS: Record<string, string> = {
