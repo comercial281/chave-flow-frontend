@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, RefreshCw, Building2, CheckCircle, AlertCircle, Loader2, Copy, ExternalLink, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@evoapi/design-system';
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@evoapi/design-system';
 import clientInstancesService, { ClientInstance, CreateClientInstancePayload } from '@/services/clientInstances/clientInstancesService';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const STATUS_LABEL: Record<string, string> = {
   pending:               'Aguardando',
@@ -24,10 +24,10 @@ function StatusIcon({ status }: { status: string }) {
   return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
 }
 
-function InstanceCard({ instance, onDelete, onRefresh }: {
+function InstanceCard({ instance, onDelete }: {
   instance: ClientInstance;
   onDelete: () => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied]     = useState(false);
@@ -200,7 +200,7 @@ function NewClientModal({ open, onClose, onCreate }: {
 }
 
 export default function ClientInstances() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [instances, setInstances] = useState<ClientInstance[]>([]);
   const [loading, setLoading]     = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

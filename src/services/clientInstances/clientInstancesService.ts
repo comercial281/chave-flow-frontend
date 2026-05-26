@@ -1,4 +1,4 @@
-import apiClient from '@/services/core/apiClient';
+import apiClient from '@/services/core/api';
 
 export type InstanceStatus = 'pending' | 'provisioning_railway' | 'active' | 'error';
 
