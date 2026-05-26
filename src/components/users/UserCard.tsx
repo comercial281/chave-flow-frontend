@@ -21,13 +21,13 @@ export default function UserCard({
 }: UserCardProps) {
   const { t } = useLanguage('users');
 
-  const getInitials = (name: string) =>
-    name
+  const getInitials = (name?: string | null) =>
+    (name ?? '')
       .split(' ')
       .map(word => word.charAt(0))
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || '?';
 
   const getRoleLabel = (user: User) => {
     // Priorizar role_data se disponível

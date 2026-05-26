@@ -7,6 +7,7 @@ import { GlobalConfigProvider } from './contexts/GlobalConfigContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 import { PermissionsProvider } from './contexts/PermissionsContext';
 import { UISettingsApplier } from './components/UISettingsApplier';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import { Toaster } from '@evoapi/design-system';
 
@@ -29,22 +30,24 @@ function ThemedToaster() {
 
 function App() {
   return (
-    <AuthProvider>
-      <DarkModeProvider>
-        <GlobalConfigProvider>
-          <UISettingsApplier />
-          <PermissionsProvider>
-          <NotificationsProvider>
-            <AppInitializer>
-              <ImpersonationBar />
-              <AppRouter />
-              <ThemedToaster />
-            </AppInitializer>
-          </NotificationsProvider>
-          </PermissionsProvider>
-        </GlobalConfigProvider>
-      </DarkModeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <DarkModeProvider>
+          <GlobalConfigProvider>
+            <UISettingsApplier />
+            <PermissionsProvider>
+              <NotificationsProvider>
+                <AppInitializer>
+                  <ImpersonationBar />
+                  <AppRouter />
+                  <ThemedToaster />
+                </AppInitializer>
+              </NotificationsProvider>
+            </PermissionsProvider>
+          </GlobalConfigProvider>
+        </DarkModeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

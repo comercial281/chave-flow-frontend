@@ -37,13 +37,13 @@ export default function UsersTable({
   const { can } = useUserPermissions();
   const { t } = useLanguage('users');
 
-  const getInitials = (name: string) =>
-    name
+  const getInitials = (name?: string | null) =>
+    (name ?? '')
       .split(' ')
       .map(word => word.charAt(0))
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || '?';
 
   const getStatusColor = (status: string) => {
     switch (status) {
