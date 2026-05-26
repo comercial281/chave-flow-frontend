@@ -388,6 +388,17 @@ class ContactsService {
     const response = await api.post(`/contacts/${contactId}/qualify`);
     return (response.data as { data: { status: string; score: number; reasoning: string; insights?: string[] } }).data;
   }
+
+  async batchQualifyLeads(contactIds: (string | number)[]): Promise<Array<{
+    contact_id: string | number;
+    status: string;
+    score: number;
+    reasoning: string;
+    error?: string;
+  }>> {
+    const response = await api.post('/lead_qualifications/batch_qualify', { contact_ids: contactIds });
+    return (response.data as { data: Array<{ contact_id: string | number; status: string; score: number; reasoning: string; error?: string }> }).data;
+  }
 }
 
 export const contactsService = new ContactsService();
