@@ -103,7 +103,7 @@ export default function QuickRepliesTable({
       sortBy={sortBy}
       sortOrder={sortOrder}
       onSort={onSort as (column: string) => void}
-      getItemId={(item: Record<string, any>) => item.id}
+      getRowKey={(item: Record<string, any>) => item.id}
     />
   );
 }

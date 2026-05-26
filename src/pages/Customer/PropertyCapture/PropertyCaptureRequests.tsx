@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Search, RefreshCw, CheckCircle, XCircle, Building2, User,
+  Search, RefreshCw, CheckCircle, XCircle, User,
   Phone, Mail, MapPin, DollarSign, ClipboardList,
 } from 'lucide-react';
 import {
