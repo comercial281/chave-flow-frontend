@@ -27,6 +27,9 @@ import {
   Star,
   Lock,
   CheckCircle2,
+  Wand2,
+  Gauge,
+  Loader2,
 } from 'lucide-react';
 import {
   propertiesService,
@@ -84,6 +87,10 @@ export default function Properties() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete]                 = useState<Property | null>(null);
+  const [generatingDesc, setGeneratingDesc]     = useState(false);
+  const [cepLoading, setCepLoading]             = useState(false);
+  const [propertyScores, setPropertyScores]     = useState<Record<string, number>>({});
+  const [scoringId, setScoringId]               = useState<string | null>(null);
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -194,6 +201,53 @@ export default function Properties() {
     }
   };
 
+  const handleCepLookup = async (cep: string) => {
+    const clean = cep.replace(/\D/g, '');
+    if (clean.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const data = await propertiesService.cepLookup(clean);
+      setForm(prev => ({
+        ...prev,
+        address_street: data.logradouro || prev.address_street,
+        address_neighborhood: data.bairro || prev.address_neighborhood,
+        address_city: data.localidade || prev.address_city,
+        address_state: data.uf || prev.address_state,
+      }));
+    } catch {
+      // silent — CEP not found is non-fatal
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!editing) return;
+    setGeneratingDesc(true);
+    try {
+      const result = await propertiesService.generateDescription(editing.id, { apply: true });
+      setForm(prev => ({ ...prev, description: result.description }));
+      if (result.headline) setForm(prev => ({ ...prev, title: result.headline || prev.title }));
+      toast.success('Descrição gerada com IA');
+    } catch {
+      toast.error('Erro ao gerar descrição. Verifique se a chave de IA está configurada.');
+    } finally {
+      setGeneratingDesc(false);
+    }
+  };
+
+  const handleCalculateScore = async (id: string) => {
+    setScoringId(id);
+    try {
+      const result = await propertiesService.calculateScore(id);
+      setPropertyScores(prev => ({ ...prev, [id]: result.score }));
+    } catch {
+      // silent
+    } finally {
+      setScoringId(null);
+    }
+  };
+
   const f = form;
   const setF = (patch: Partial<PropertyFormData>) => setForm(prev => ({ ...prev, ...patch }));
 
@@ -295,6 +349,9 @@ export default function Properties() {
                 property={property}
                 onEdit={openEdit}
                 onDelete={p => { setToDelete(p); setDeleteDialogOpen(true); }}
+                score={propertyScores[property.id]}
+                onCalculateScore={() => handleCalculateScore(property.id)}
+                scoringId={scoringId}
               />
             ))}
           </div>
@@ -397,8 +454,25 @@ export default function Properties() {
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
                 <UILabel>CEP</UILabel>
-                <Input value={f.address_zip} onChange={e => setF({ address_zip: e.target.value })}
-                  placeholder="01310-100" className="mt-1" />
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={f.address_zip}
+                    onChange={e => setF({ address_zip: e.target.value })}
+                    onBlur={e => handleCepLookup(e.target.value)}
+                    placeholder="01310-100"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={cepLoading}
+                    onClick={() => handleCepLookup(f.address_zip ?? '')}
+                    className="shrink-0"
+                  >
+                    {cepLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar'}
+                  </Button>
+                </div>
               </div>
               <div className="col-span-2">
                 <UILabel>Rua</UILabel>
@@ -429,9 +503,27 @@ export default function Properties() {
 
             {/* Description */}
             <div>
-              <UILabel>Descrição</UILabel>
+              <div className="flex items-center justify-between mb-1">
+                <UILabel>Descrição</UILabel>
+                {editing && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={generatingDesc}
+                    onClick={handleGenerateDescription}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {generatingDesc
+                      ? <Loader2 className="h-3 w-3 animate-spin" />
+                      : <Wand2 className="h-3 w-3" />
+                    }
+                    Gerar com IA
+                  </Button>
+                )}
+              </div>
               <Textarea value={f.description} onChange={e => setF({ description: e.target.value })}
-                rows={3} placeholder="Descreva o imóvel..." className="mt-1 resize-none" />
+                rows={3} placeholder="Descreva o imóvel..." className="resize-none" />
             </div>
 
             {/* Flags */}
@@ -477,7 +569,21 @@ export default function Properties() {
   );
 }
 
-function PropertyCard({ property: p, onEdit, onDelete }: { property: Property; onEdit: (p: Property) => void; onDelete: (p: Property) => void }) {
+function PropertyCard({
+  property: p,
+  onEdit,
+  onDelete,
+  score,
+  onCalculateScore,
+  scoringId,
+}: {
+  property: Property;
+  onEdit: (p: Property) => void;
+  onDelete: (p: Property) => void;
+  score?: number;
+  onCalculateScore: () => void;
+  scoringId: string | null;
+}) {
   const price = p.display_price
     ?? formatCurrency(p.sale_price)
     ?? formatCurrency(p.rent_price);
@@ -559,7 +665,29 @@ function PropertyCard({ property: p, onEdit, onDelete }: { property: Property; o
 
         <div className="mt-2 pt-2 border-t border-border flex items-center justify-between">
           <span className="font-mono text-xs text-muted-foreground">{p.code}</span>
-          {p.status === 'active' && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+          <div className="flex items-center gap-2">
+            {score != null ? (
+              <span className={`text-xs font-medium flex items-center gap-1 ${
+                score >= 70 ? 'text-emerald-600' : score >= 40 ? 'text-amber-600' : 'text-red-500'
+              }`}>
+                <Gauge className="h-3 w-3" />
+                {score}%
+              </span>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); onCalculateScore(); }}
+                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                disabled={scoringId === p.id}
+                title="Calcular força do anúncio"
+              >
+                {scoringId === p.id
+                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                  : <Gauge className="h-3 w-3" />
+                }
+              </button>
+            )}
+            {p.status === 'active' && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+          </div>
         </div>
       </div>
     </div>
