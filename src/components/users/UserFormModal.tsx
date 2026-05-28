@@ -16,7 +16,7 @@ import {
 import { toast } from 'sonner';
 import usersService from '@/services/users/usersService';
 import { customRolesService } from '@/services/customRoles/customRolesService';
-import type { User, UserFormData, UserUpdateData, CRole } from '@/types/users';
+import type { User, UserFormData, CRole } from '@/types/users';
 import type { CustomRole } from '@/types/customRoles';
 import { Loader2, Shield } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
