@@ -83,6 +83,28 @@ export const followupSequencesService = {
   },
 };
 
+// Admin endpoints — seed template, status, fast_test bypass.
+export const followupAdminService = {
+  async reseedTemplate(token = 'chaveflow-debug-2026'): Promise<{
+    pipeline_id: string;
+    pipeline_name: string;
+    stages_count: number;
+    sequences: string[];
+    labels_count: number;
+  }> {
+    const res = await api.post(`/_admin/followup/reseed_template`, null, { params: { token } });
+    return (res.data as {
+      data: {
+        pipeline_id: string;
+        pipeline_name: string;
+        stages_count: number;
+        sequences: string[];
+        labels_count: number;
+      };
+    }).data;
+  },
+};
+
 // Pretty labels for the UI
 export const MESSAGE_TYPE_LABELS: Record<FollowupMessageType, string> = {
   text:  'Texto',
