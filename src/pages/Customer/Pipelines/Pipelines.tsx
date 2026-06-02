@@ -2,15 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Button,
-} from '@evoapi/design-system';
+import { Button } from '@evoapi/design-system';
 import { Grid3X3, List, GitBranch } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 
@@ -33,6 +25,7 @@ import {
   EditPipelineModal,
   DuplicatePipelineModal,
 } from '@/components/pipelines/index';
+import DeletePipelineModal from '@/components/pipelines/DeletePipelineModal';
 import { PipelinesTour } from '@/tours';
 
 const INITIAL_STATE: PipelinesState = {
@@ -263,17 +256,23 @@ export default function Pipelines() {
   const confirmDeletePipeline = async () => {
     if (!pipelineToDelete) return;
 
+    const force = (pipelineToDelete.item_count || 0) > 0;
+
     setState(prev => ({ ...prev, loading: { ...prev.loading, delete: true } }));
 
     try {
-      await pipelinesService.deletePipeline(pipelineToDelete.id);
+      await pipelinesService.deletePipeline(pipelineToDelete.id, { force });
       toast.success(t('messages.deleteSuccess'));
       loadPipelines();
       setDeleteDialogOpen(false);
       setPipelineToDelete(null);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting pipeline:', error);
-      toast.error(t('messages.deleteError'));
+      const apiMessage =
+        (error as { response?: { data?: { message?: string; error?: { message?: string } } } })
+          ?.response?.data?.error?.message ||
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(apiMessage || t('messages.deleteError'));
     } finally {
       setState(prev => ({ ...prev, loading: { ...prev.loading, delete: false } }));
     }
@@ -444,33 +443,17 @@ export default function Pipelines() {
         )}
       </div>
 
-      {/* Delete Pipeline Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('dialog.deletePipeline.title')}</DialogTitle>
-            <DialogDescription>{t('dialog.deletePipeline.description')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={state.loading.delete}
-            >
-              {t('dialog.deletePipeline.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeletePipeline}
-              disabled={state.loading.delete}
-            >
-              {state.loading.delete
-                ? t('dialog.deletePipeline.deleting')
-                : t('dialog.deletePipeline.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Pipeline Modal */}
+      <DeletePipelineModal
+        open={deleteDialogOpen}
+        onOpenChange={open => {
+          setDeleteDialogOpen(open);
+          if (!open) setPipelineToDelete(null);
+        }}
+        pipeline={pipelineToDelete}
+        onConfirm={confirmDeletePipeline}
+        loading={state.loading.delete}
+      />
 
       {/* Create Pipeline Modal */}
       <CreatePipelineModal

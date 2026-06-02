@@ -61,8 +61,13 @@ class PipelinesService {
   }
 
   // Delete pipeline
-  async deletePipeline(pipelineId: string): Promise<{ success: boolean; message: string }> {
-    const response = await api.delete(`/pipelines/${pipelineId}`);
+  async deletePipeline(
+    pipelineId: string,
+    opts: { force?: boolean } = {},
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await api.delete(`/pipelines/${pipelineId}`, {
+      params: opts.force ? { force: true } : undefined,
+    });
     return extractData<{ success: boolean; message: string }>(response);
   }
 
