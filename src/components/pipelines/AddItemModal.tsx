@@ -193,7 +193,7 @@ export default function AddItemModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] min-h-[500px] flex flex-col">
+      <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] min-h-0 rounded-none border-0 p-4 pb-safe sm:w-auto sm:h-auto sm:max-w-[600px] sm:max-h-[80vh] sm:min-h-[500px] sm:rounded-lg sm:border sm:p-6 sm:pb-6 flex flex-col">
         <DialogHeader>
           <DialogTitle>{t('addItem.title')}</DialogTitle>
           <DialogDescription>{t('addItem.description')}</DialogDescription>

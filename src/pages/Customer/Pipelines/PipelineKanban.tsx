@@ -555,15 +555,15 @@ export default function PipelineKanban() {
 
         {/* Kanban Board */}
         <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-x-auto overflow-y-hidden px-4 sm:px-6 lg:px-8 py-6">
+          <div className="h-full overflow-x-auto overflow-y-hidden snap-x-cols md:[scroll-snap-type:none] px-3 sm:px-6 lg:px-8 py-4 md:py-6">
             {/* Kanban Content */}
             <div
-              className="flex gap-6 h-full pb-6"
+              className="flex gap-3 md:gap-6 h-full pb-6"
               style={{ width: 'fit-content', minWidth: '100%' }}
             >
               {/* Stage Columns */}
               {stages.map((stage: PipelineStage) => (
-                <div key={stage.id} className="w-80 flex-shrink-0">
+                <div key={stage.id} className="w-[85vw] max-w-sm md:w-80 flex-shrink-0 snap-col md:[scroll-snap-align:none]">
                   <div className="bg-background rounded-xl shadow-sm border border-border h-full flex flex-col">
                     {/* Stage Header */}
                     <div
@@ -970,7 +970,7 @@ export default function PipelineKanban() {
               ))}
 
               {/* Add Stage Column */}
-              <div className="w-80 flex-shrink-0">
+              <div className="w-[85vw] max-w-sm md:w-80 flex-shrink-0 snap-col md:[scroll-snap-align:none]">
                 <div
                   className="bg-muted/50 rounded-xl p-6 h-full border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
                   onClick={() => setShowCreateStageModal(true)}

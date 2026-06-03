@@ -257,7 +257,7 @@ export default function EditItemModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] rounded-none border-0 p-4 pb-safe sm:w-auto sm:h-auto sm:max-w-3xl sm:max-h-[90vh] sm:rounded-lg sm:border sm:p-6 sm:pb-6 overflow-hidden">
         <DialogHeader>
           <DialogTitle>{t('editItem.title')}</DialogTitle>
           <DialogDescription>{t('editItem.description')}</DialogDescription>
