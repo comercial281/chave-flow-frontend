@@ -216,9 +216,58 @@ export default function BaseTable<T extends Record<string, any>>({
   }
 
   return (
-    <div
-      className={`rounded-lg border border-sidebar-border bg-sidebar overflow-hidden ${className}`}
-    >
+    <div className={className}>
+      {/* Mobile: cards stack */}
+      <div className="md:hidden space-y-2">
+        {data.map((item, index) => {
+          const key = getRowKey(item);
+          const isSelected = isItemSelected(item);
+          const labelColumn = columns[0];
+          const restColumns = columns.slice(1);
+          return (
+            <div
+              key={key}
+              className={`rounded-lg border border-sidebar-border bg-sidebar p-3 ${
+                isSelected ? 'ring-2 ring-primary' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  {selectable && (
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => handleSelectItem(item)}
+                      aria-label={t('base.table.selectItem', { key })}
+                      className="border-sidebar-border data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5 flex-shrink-0"
+                    />
+                  )}
+                  <div className="text-sidebar-foreground font-semibold text-sm min-w-0 break-words">
+                    {renderCellContent(item, labelColumn, index)}
+                  </div>
+                </div>
+                {actions && actions.length > 0 && (
+                  <div className="flex-shrink-0">{renderActions(item)}</div>
+                )}
+              </div>
+              {restColumns.length > 0 && (
+                <div className="space-y-1 pl-0 pt-2 border-t border-sidebar-border/40">
+                  {restColumns.map(column => (
+                    <div key={column.key} className="flex justify-between items-start gap-3 text-xs">
+                      <span className="text-sidebar-foreground/60 flex-shrink-0">{column.label}</span>
+                      <span className="text-sidebar-foreground text-right min-w-0 break-words">
+                        {renderCellContent(item, column, index)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop: tabela tradicional */}
+      <div className="hidden md:block rounded-lg border border-sidebar-border bg-sidebar overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="border-sidebar-border hover:bg-sidebar-accent/50">
@@ -288,6 +337,7 @@ export default function BaseTable<T extends Record<string, any>>({
           })}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

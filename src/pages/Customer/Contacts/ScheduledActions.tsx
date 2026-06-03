@@ -220,7 +220,7 @@ export default function ScheduledActions() {
   const filteredActions = getFilteredActions();
 
   return (
-    <div className="h-full flex flex-col p-6" data-tour="scheduled-actions-page">
+    <div className="h-full flex flex-col p-3 md:p-6" data-tour="scheduled-actions-page">
       <ScheduledActionsTour />
       <div data-tour="scheduled-actions-header">
       <ScheduledActionsHeader
