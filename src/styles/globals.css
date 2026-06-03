@@ -330,3 +330,72 @@
     color: #000000 !important;
   }
 }
+
+/* ====================================================================
+ * LM Flow Mobile — fundação responsiva
+ * Touch targets, safe-area iOS, scroll containers e tap highlight
+ * ==================================================================== */
+@layer base {
+  html, body, #root {
+    height: 100%;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Inputs de form não devem dar zoom no iOS (font-size < 16px causa zoom) */
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Safe area insets iOS (notch + bottom bar) */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Touch target mínimo 44x44px (Apple HIG) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Container scrollável sem overscroll bounce contaminar pai */
+  .scroll-contain {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Snap scroll horizontal pra pipeline/kanban swipe */
+  .snap-x-cols {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .snap-x-cols::-webkit-scrollbar { display: none; }
+  .snap-col { scroll-snap-align: start; scroll-snap-stop: always; }
+
+  /* Esconder elementos no mobile / desktop */
+  @media (max-width: 767px) {
+    .hide-mobile { display: none !important; }
+  }
+  @media (min-width: 768px) {
+    .hide-desktop { display: none !important; }
+  }
+
+  /* Padding extra no fim do conteúdo quando há BottomNav (mobile only) */
+  @media (max-width: 767px) {
+    .pb-bottom-nav { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  }
+}

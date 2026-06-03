@@ -11,6 +11,7 @@ import {
 } from '@evoapi/design-system';
 import { toast } from 'sonner';
 import { Header, Sidebar } from './components';
+import BottomNav from './components/BottomNav';
 import {
   getCustomerMenuItems,
   MenuItem as MenuItemType,
@@ -140,10 +141,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto bg-background transition-colors duration-150 ease-in-out">
-          <div className="h-full">{children}</div>
+          <div className="h-full pb-bottom-nav md:pb-0">{children}</div>
         </main>
 
       </div>
+
+      {/* Bottom Navigation (mobile only) */}
+      <BottomNav onOpenMore={() => setIsMobileMenuOpen(true)} />
 
       {/* Tour */}
       <WelcomeTourModal />

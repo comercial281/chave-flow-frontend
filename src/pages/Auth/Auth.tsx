@@ -410,7 +410,7 @@ export const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-t from-primary/20 via-background/95 to-background relative">
+    <div className="min-h-dvh flex flex-col bg-gradient-to-t from-primary/20 via-background/95 to-background relative px-safe pt-safe pb-safe">
       <div className="flex-1 flex items-center justify-center p-4">
         {/* Seletor de idiomas no canto superior direito */}
         <div className="absolute top-4 right-4 z-10">
@@ -436,7 +436,7 @@ export const Auth: React.FC = () => {
           </div>
 
           {/* Formulário */}
-          <div className="bg-background/80 backdrop-blur-sm border rounded-lg p-6 shadow-lg">
+          <div className="bg-background/80 backdrop-blur-sm border rounded-lg p-5 sm:p-6 shadow-lg">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className={`grid w-full ${enableAccountSignup ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <TabsTrigger value="login">{t('auth.tabs.login')}</TabsTrigger>
