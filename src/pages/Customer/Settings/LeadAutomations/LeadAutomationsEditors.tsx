@@ -193,24 +193,38 @@ export function ConditionEditor({ trigger, condition, onChange, resources }: Con
   // --- lead.message_received ---
   if (trigger === 'lead.message_received') {
     const value = typeof condition?.value === 'string' ? condition.value : '';
+    const operator = condition?.operator === 'equals' ? 'equals' : 'contains';
+    const commit = (op: string, val: string) =>
+      onChange(val ? { field: 'keyword', operator: op, value: val } : null);
     return (
-      <div>
-        <UILabel>Palavra-chave (opcional)</UILabel>
-        <Input
-          value={value}
-          onChange={e =>
-            onChange(
-              e.target.value
-                ? { field: 'keyword', operator: 'contains', value: e.target.value }
-                : null,
-            )
-          }
-          placeholder="Ex: visita, agendar, preço…"
-          className="mt-1"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Em branco = dispara em qualquer mensagem recebida.
-        </p>
+      <div className="space-y-2">
+        <div>
+          <UILabel>Comparação</UILabel>
+          <select
+            value={operator}
+            onChange={e => commit(e.target.value, value)}
+            className={baseSelectClass}
+          >
+            <option value="contains">Contém</option>
+            <option value="equals">É igual a</option>
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            <strong>Contém:</strong> dispara se a mensagem tiver a palavra em qualquer lugar (recomendado).{' '}
+            <strong>É igual a:</strong> só dispara se a mensagem for exatamente a palavra-chave.
+          </p>
+        </div>
+        <div>
+          <UILabel>Palavra-chave (opcional)</UILabel>
+          <Input
+            value={value}
+            onChange={e => commit(operator, e.target.value)}
+            placeholder="Ex: visita, agendar, preço…"
+            className="mt-1"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Em branco = dispara em qualquer mensagem recebida.
+          </p>
+        </div>
       </div>
     );
   }
@@ -585,7 +599,8 @@ export function formatConditionSummary(
     return `Sem resposta por: ${condition.value}`;
   }
   if (trigger === 'lead.message_received') {
-    return `Contém: "${condition.value}"`;
+    const op = condition.operator === 'equals' ? 'É igual a' : 'Contém';
+    return `${op}: "${condition.value}"`;
   }
   if (trigger === 'lead.stage_changed') {
     const allStages = Object.values(resources.stagesByPipeline).flat();
