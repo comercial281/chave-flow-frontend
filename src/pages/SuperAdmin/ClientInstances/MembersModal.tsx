@@ -279,68 +279,70 @@ export default function MembersModal({ instance, open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
-      <DialogContent className="sm:max-w-[820px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[820px] max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
             Membros — {instance.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="border rounded-lg overflow-hidden bg-card">
-          <div className="grid grid-cols-[1.4fr,1fr,0.8fr,1.4fr,0.3fr] gap-2 px-3 py-2 bg-muted/40 text-xs font-medium text-muted-foreground">
-            <div>Email</div>
-            <div>Nome</div>
-            <div>Cargo</div>
-            <div>Senha</div>
-            <div></div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+          <div className="border rounded-lg overflow-hidden bg-card">
+            <div className="grid grid-cols-[1.4fr,1fr,0.8fr,1.4fr,0.3fr] gap-2 px-3 py-2 bg-muted/40 text-xs font-medium text-muted-foreground sticky top-0 z-10">
+              <div>Email</div>
+              <div>Nome</div>
+              <div>Cargo</div>
+              <div>Senha</div>
+              <div></div>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando membros...
+              </div>
+            ) : error ? (
+              <div className="py-6 px-3 text-sm text-destructive bg-destructive/5">{error}</div>
+            ) : members.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">Nenhum membro neste CRM ainda.</div>
+            ) : (
+              members.map(m => (
+                <div key={m.id} className="grid grid-cols-[1.4fr,1fr,0.8fr,1.4fr,0.3fr] gap-2 px-3 py-2 border-t items-center text-sm">
+                  <div className="truncate" title={m.email}>{m.email}</div>
+                  <div className="truncate">{m.name}</div>
+                  <div>
+                    <select
+                      value={m.chave_role}
+                      onChange={e => handleRoleChange(m, e.target.value)}
+                      className="h-7 text-xs border rounded px-1 bg-background"
+                    >
+                      <option value="agent">Corretor</option>
+                      <option value="manager">Gerente</option>
+                      <option value="admin">Administrador</option>
+                    </select>
+                  </div>
+                  <div>
+                    <PasswordCell instanceId={instance.id} user={m} onChanged={load} />
+                  </div>
+                  <div className="text-right">
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(m)} title="Remover">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+
+            <AddMemberRow instanceId={instance.id} onAdded={handleAdded} />
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando membros...
-            </div>
-          ) : error ? (
-            <div className="py-6 px-3 text-sm text-destructive bg-destructive/5">{error}</div>
-          ) : members.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">Nenhum membro neste CRM ainda.</div>
-          ) : (
-            members.map(m => (
-              <div key={m.id} className="grid grid-cols-[1.4fr,1fr,0.8fr,1.4fr,0.3fr] gap-2 px-3 py-2 border-t items-center text-sm">
-                <div className="truncate" title={m.email}>{m.email}</div>
-                <div className="truncate">{m.name}</div>
-                <div>
-                  <select
-                    value={m.chave_role}
-                    onChange={e => handleRoleChange(m, e.target.value)}
-                    className="h-7 text-xs border rounded px-1 bg-background"
-                  >
-                    <option value="agent">Corretor</option>
-                    <option value="manager">Gerente</option>
-                    <option value="admin">Administrador</option>
-                  </select>
-                </div>
-                <div>
-                  <PasswordCell instanceId={instance.id} user={m} onChanged={load} />
-                </div>
-                <div className="text-right">
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(m)} title="Remover">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-
-          <AddMemberRow instanceId={instance.id} onAdded={handleAdded} />
+          <p className="text-xs text-muted-foreground mt-3">
+            Senha "armazenada" fica criptografada no banco do master e só é mostrada quando você clica em "Ver".
+            Se o cliente trocar pela UI dele, o painel marca como "cliente trocou" e o botão Reset gera uma temporária nova.
+          </p>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-2">
-          Senha "armazenada" fica criptografada no banco do master e só é mostrada quando você clica em "Ver".
-          Se o cliente trocar pela UI dele, o painel marca como "cliente trocou" e o botão Reset gera uma temporária nova.
-        </p>
-
-        <DialogFooter>
+        <DialogFooter className="px-6 py-3 border-t shrink-0">
           <Button variant="outline" onClick={onClose}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
