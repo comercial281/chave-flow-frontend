@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import {
   Button,
@@ -27,6 +27,111 @@ import {
   MESSAGE_TYPE_LABELS,
   formatDelay,
 } from '@/services/followupSequences/followupSequencesService';
+import { pipelinesService } from '@/services/pipelines/pipelinesService';
+import type { Pipeline, PipelineStage } from '@/types/analytics';
+
+// Backend (Followup::SendStep#move_stage_if_configured) deriva o slug a partir do
+// nome do stage assim: name.downcase.tr(' ', '-'). Mantemos exatamente o mesmo
+// shape em JS pra que os 2 selects gerem um slug compativel ao salvar.
+const slugifyStageName = (name: string): string => name.toLowerCase().replace(/ /g, '-');
+
+function StageSelector({
+  currentSlug,
+  pipelines,
+  stagesByPipeline,
+  loadStages,
+  onChange,
+}: {
+  currentSlug: string;
+  pipelines: Pipeline[];
+  stagesByPipeline: Record<string, PipelineStage[]>;
+  loadStages: (pipelineId: string) => void;
+  onChange: (slug: string) => void;
+}) {
+  // Pipeline inferido a partir do slug salvo: varre os caches ja carregados
+  // e pega o primeiro pipeline cujo stage matche o slug. Best-effort: se o
+  // stages ainda nao tiver carregado, fica vazio ate o useEffect popular.
+  const inferredPipelineId = useMemo(() => {
+    if (!currentSlug) return '';
+    for (const p of pipelines) {
+      const stages = stagesByPipeline[p.id];
+      if (!stages) continue;
+      if (stages.some(s => slugifyStageName(s.name) === currentSlug)) {
+        return p.id;
+      }
+    }
+    return '';
+  }, [currentSlug, pipelines, stagesByPipeline]);
+
+  const [pipelineId, setPipelineId] = useState<string>(inferredPipelineId);
+
+  // Quando o cache carrega depois do mount, sincroniza a selecao.
+  useEffect(() => {
+    if (!pipelineId && inferredPipelineId) setPipelineId(inferredPipelineId);
+  }, [inferredPipelineId, pipelineId]);
+
+  const stages = pipelineId ? (stagesByPipeline[pipelineId] ?? []) : [];
+  const matchedStage = stages.find(s => slugifyStageName(s.name) === currentSlug);
+  const slugVisivelMasSemMatch = currentSlug && pipelineId && !matchedStage;
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <div>
+        <UILabel className="text-xs">Pipeline</UILabel>
+        <Select
+          value={pipelineId}
+          onValueChange={(v) => {
+            setPipelineId(v);
+            if (!stagesByPipeline[v]) loadStages(v);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Escolha o pipe" />
+          </SelectTrigger>
+          <SelectContent>
+            {pipelines.map(p => (
+              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <UILabel className="text-xs">Mover pra coluna</UILabel>
+        <Select
+          value={matchedStage?.id ?? ''}
+          onValueChange={(stageId) => {
+            const st = stages.find(s => s.id === stageId);
+            if (st) onChange(slugifyStageName(st.name));
+          }}
+          disabled={!pipelineId || stages.length === 0}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder={pipelineId ? 'Escolha a coluna' : 'Escolha o pipeline primeiro'}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {stages.map(s => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {slugVisivelMasSemMatch && (
+        <p className="col-span-2 text-xs text-muted-foreground">
+          Slug atual <code className="rounded bg-muted px-1">{currentSlug}</code> nao bate com
+          nenhuma coluna deste pipeline. Escolha uma coluna pra sobrescrever.
+        </p>
+      )}
+      {currentSlug && !pipelineId && (
+        <p className="col-span-2 text-xs text-muted-foreground">
+          Slug atual <code className="rounded bg-muted px-1">{currentSlug}</code>. Escolha o
+          pipeline pra mapear pra coluna correta.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function MediaUploadButton({
   messageType,
@@ -90,6 +195,9 @@ export default function FollowupSequences() {
   const [testPhone, setTestPhone] = useState('');
   const [testSeqId, setTestSeqId] = useState<string | null>(null);
 
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [stagesByPipeline, setStagesByPipeline] = useState<Record<string, PipelineStage[]>>({});
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -103,10 +211,31 @@ export default function FollowupSequences() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Carrega pipelines uma vez. Eles alimentam o Select de Pipeline em cada step.
+  // Stages sao buscados sob demanda (loadStages) por pipeline pra nao explodir a UI.
+  useEffect(() => {
+    pipelinesService
+      .getPipelines()
+      .then(res => setPipelines(res.data ?? []))
+      .catch(() => toast.error('Erro ao carregar pipelines'));
+  }, []);
+
+  const loadStages = useCallback((pipelineId: string) => {
+    pipelinesService
+      .getPipelineStages(pipelineId)
+      .then(res => setStagesByPipeline(prev => ({ ...prev, [pipelineId]: res.data ?? [] })))
+      .catch(() => toast.error('Erro ao carregar colunas do pipeline'));
+  }, []);
+
   const openEdit = (seq: FollowupSequence) => {
     setEditing(seq);
     setSteps(seq.steps.length ? [...seq.steps] : Array.from({ length: 6 }, (_, i) => EMPTY_STEP(i + 1)));
     setEditorOpen(true);
+    // Pre-popula stages de todos pipelines pra que o StageSelector consiga inferir
+    // qual pipeline esta selecionado a partir do move_to_stage_slug ja salvo.
+    pipelines.forEach(p => {
+      if (!stagesByPipeline[p.id]) loadStages(p.id);
+    });
   };
 
   const closeEditor = () => {
@@ -333,9 +462,13 @@ export default function FollowupSequences() {
                     )}
 
                     <div className="mt-2">
-                      <UILabel className="text-xs">Mover pra coluna (slug)</UILabel>
-                      <Input value={s.move_to_stage_slug ?? ''} onChange={e => updateStep(idx, { move_to_stage_slug: e.target.value })}
-                             placeholder="follow-up-curto" />
+                      <StageSelector
+                        currentSlug={s.move_to_stage_slug ?? ''}
+                        pipelines={pipelines}
+                        stagesByPipeline={stagesByPipeline}
+                        loadStages={loadStages}
+                        onChange={(slug) => updateStep(idx, { move_to_stage_slug: slug })}
+                      />
                     </div>
                   </div>
                 ))}
