@@ -45,17 +45,30 @@ interface ResolveContext {
  * Substitui placeholders {{token}} pelos valores reais do contato.
  * Built-in cobre o set fixo. Tokens desconhecidos ficam intactos (visualmente
  * óbvio que algo errou) e geram warn no console pro operador notar.
+ *
+ * Caminhos lidos do Conversation (smoke test 2026-06-06 mostrou que `meta.sender`
+ * vem vazio enquanto `contact` está populado — sempre):
+ *   conversation.contact.{name, phone_number, email}     (primário — fonte de verdade)
+ *   conversation.meta.sender.{name, phone_number, email} (fallback)
+ *   conversation.pipeline.name                            ({{pipeline}})
+ *   conversation.pipeline_stage.name                      ({{estagio}})
  */
 function interpolate(template: string, ctx: ResolveContext): string {
   if (!template) return '';
-  const contact = ctx.conversation?.meta?.sender;
+  const conv = ctx.conversation as (typeof ctx.conversation & {
+    contact?: { name?: string; phone_number?: string | null; email?: string | null };
+    pipeline?: { name?: string };
+    pipeline_stage?: { name?: string };
+  }) | null | undefined;
+
+  const contact = conv?.contact ?? conv?.meta?.sender;
 
   const builtin: Record<string, string> = {
     nome: firstName(contact?.name),
     telefone: contact?.phone_number ?? '',
     email: contact?.email ?? '',
-    pipeline: '',  // resolvido server-side em automações; manual no chat fica vazio
-    estagio: '',
+    pipeline: conv?.pipeline?.name ?? '',
+    estagio: conv?.pipeline_stage?.name ?? '',
   };
 
   return template.replace(/\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}/gi, (raw, token: string) => {
