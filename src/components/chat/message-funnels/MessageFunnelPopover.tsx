@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@evoapi/design-system/card';
 import { Button } from '@evoapi/design-system/button';
 import {
-  Rocket, X, Play, Pause, Type, Mic, Image as ImageIcon, Video, FileText, Search, Loader2,
+  Rocket, X, Play, Pause, Type, Mic, Image as ImageIcon, Video, FileText, Search, Loader2, Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { messageFunnelsService, tenantTemplateVariablesService } from '@/services/messageFunnels/messageFunnelsService';
+import MessageFunnelEditor from '@/components/messageFunnels/MessageFunnelEditor';
 import type {
   MessageFunnel,
   MessageFunnelItem,
@@ -227,14 +228,15 @@ export default function MessageFunnelPopover({
   // Após o fix de re-render cascading (dispatch fora do Popover), `running` é só pra
   // bloquear duplo-click instantâneo enquanto onClose() não foi processado.
   const [running] = useState<{ id: string; idx: number; total: number } | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  // Busca funis ativos + vars custom do tenant em paralelo. Custom vars
+  // resolvem placeholders {{token}} dos funis no momento do envio.
+  // Extraído pra callback pra recarregar a lista após criar um funil inline.
+  const loadFunnels = useCallback(() => {
     setLoading(true);
-    // Busca funis ativos + vars custom do tenant em paralelo. Custom vars
-    // resolvem placeholders {{token}} dos funis no momento do envio.
-    Promise.all([
+    return Promise.all([
       messageFunnelsService.list({ activeOnly: true }),
       tenantTemplateVariablesService
         .list()
@@ -247,8 +249,13 @@ export default function MessageFunnelPopover({
       })
       .catch(() => toast.error('Erro ao carregar funis'))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    loadFunnels();
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [isOpen]);
+  }, [isOpen, loadFunnels]);
 
   const filtered = search.trim()
     ? funnels.filter(f =>
@@ -299,9 +306,21 @@ export default function MessageFunnelPopover({
               <span className="text-xs text-muted-foreground">({filtered.length})</span>
             )}
           </div>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={running ? undefined : onClose}>
-            <X className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 gap-1 px-2 text-xs text-primary hover:text-primary"
+              onClick={running ? undefined : () => setEditorOpen(true)}
+              disabled={!!running}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Novo
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={running ? undefined : onClose}>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
 
         {/* Busca */}
@@ -333,12 +352,15 @@ export default function MessageFunnelPopover({
                 {funnels.length === 0 ? 'Nenhum funil criado ainda' : 'Nenhum resultado'}
               </p>
               {funnels.length === 0 && (
-                <a
-                  href="/settings/message-funnels"
-                  className="text-xs underline text-primary hover:text-primary/80"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 mt-1"
+                  onClick={() => setEditorOpen(true)}
                 >
-                  Criar funil em Settings →
-                </a>
+                  <Plus className="h-3.5 w-3.5" />
+                  Criar funil
+                </Button>
               )}
             </div>
           ) : (
@@ -397,6 +419,13 @@ export default function MessageFunnelPopover({
           )}
         </div>
       </CardContent>
+
+      {/* Editor inline: cria funil sem sair do chat. Após salvar, recarrega a lista. */}
+      <MessageFunnelEditor
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        onSaved={() => { setEditorOpen(false); loadFunnels(); }}
+      />
     </Card>
   );
 }
