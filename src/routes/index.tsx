@@ -66,6 +66,7 @@ import { PropertyCaptureRequests } from '@/pages/Customer/PropertyCapture';
 import ClientInstances from '@/pages/SuperAdmin/ClientInstances';
 import { PropertyInterests } from '@/pages/Customer/PropertyInterests';
 import { Macros } from '@/pages/Customer/Settings/Macros';
+import WhatsappReminders from '@/pages/Customer/Settings/WhatsappReminders';
 import { Products } from '@/pages/Customer/Settings/Products';
 import { Integrations } from '@/pages/Customer/Settings/Integrations';
 import EmailTemplateEditor from '@/pages/Customer/Settings/EmailTemplateEditor';
@@ -710,6 +711,19 @@ const AppRouter = () => {
                     <PermissionRoute resource="macros" action="read">
                       <Macros />
                     </PermissionRoute>
+                  </MainLayout>
+                </CustomerRoute>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/settings/whatsapp-reminders"
+            element={
+              <PrivateRoute>
+                <CustomerRoute>
+                  <MainLayout>
+                    <WhatsappReminders />
                   </MainLayout>
                 </CustomerRoute>
               </PrivateRoute>

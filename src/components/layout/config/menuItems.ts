@@ -30,6 +30,7 @@ import {
   FileText,
   TrendingUp,
   Rocket,
+  Bell,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -317,6 +318,11 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
         icon: Settings,
         resource: 'macros',
         action: 'read',
+      },
+      {
+        name: 'Lembretes',
+        href: '/settings/whatsapp-reminders',
+        icon: Bell,
       },
       {
         name: t('menu.settings.integrations'),
