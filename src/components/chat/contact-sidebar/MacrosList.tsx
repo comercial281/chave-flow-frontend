@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@evoapi/design-system/alert-dialog';
-import { ScrollArea } from '@evoapi/design-system/scroll-area';
 import { Play, Loader2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { macrosService } from '@/services/macros/macrosService';
@@ -91,8 +90,10 @@ const MacrosList: React.FC<MacrosListProps> = ({ conversationId, onMacroExecuted
   }
 
   return (
-    <ScrollArea className="max-h-[300px]">
-      <div className="space-y-2">
+    <>
+      <div
+        className="max-h-[280px] overflow-y-auto overflow-x-hidden pr-1 space-y-2 overscroll-contain [scrollbar-width:thin]"
+      >
         {macros.map(macro => (
           <div
             key={macro.id}
@@ -112,7 +113,7 @@ const MacrosList: React.FC<MacrosListProps> = ({ conversationId, onMacroExecuted
               variant="ghost"
               onClick={() => handleMacroClick(macro)}
               disabled={executingMacro === macro.id}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 shrink-0"
             >
               {executingMacro === macro.id ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -164,7 +165,7 @@ const MacrosList: React.FC<MacrosListProps> = ({ conversationId, onMacroExecuted
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </ScrollArea>
+    </>
   );
 };
 
