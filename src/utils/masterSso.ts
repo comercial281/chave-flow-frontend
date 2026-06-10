@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/authStore';
+
 // Master-admin SSO landing.
 //
 // When the master admin opens a client's CRM from the root "Clientes CRM" panel,
@@ -12,6 +14,10 @@ export function consumeMasterSso(): void {
     const decoded = JSON.parse(decodeURIComponent(atob(m[1])));
     if (decoded?.token) {
       localStorage.setItem('access_token', decoded.token);
+      // Sobrescreve QUALQUER token que o authStore tenha lido do localStorage no
+      // load (ordem de import dos ES modules), garantindo que entramos como master
+      // mesmo se a aba já tivesse outra sessão desse tenant.
+      try { useAuthStore.getState().setAccessToken(decoded.token); } catch { /* store ainda não pronto */ }
       if (decoded.name) sessionStorage.setItem('lm_master_client', String(decoded.name));
       if (decoded.root) sessionStorage.setItem('lm_master_root', String(decoded.root));
     }
