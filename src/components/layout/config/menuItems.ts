@@ -65,6 +65,7 @@ export interface SubMenuItem {
   requiredRoleKey?: string;
   requiredEmail?: string | string[];
   featureKey?: string;
+  rootTenantOnly?: boolean;
 }
 
 export interface ProfileMenuItem {
