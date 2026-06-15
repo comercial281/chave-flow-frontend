@@ -31,6 +31,8 @@ import {
   TrendingUp,
   Rocket,
   Bell,
+  Shuffle,
+  Library,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -212,6 +214,13 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
     rootTenantOnly: true,
   },
   {
+    name: 'Biblioteca de Automacoes',
+    href: '/super-admin/automation-templates',
+    icon: Library,
+    requiredEmail: 'comercial@lealmidia.com.br',
+    rootTenantOnly: true,
+  },
+  {
     name: t('menu.customer.tutorials'),
     href: '/tutorials',
     icon: GraduationCap,
@@ -327,6 +336,12 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
         name: 'Lembretes',
         href: '/settings/whatsapp-reminders',
         icon: Bell,
+      },
+      {
+        name: 'Roleta de Corretores',
+        href: '/settings/roleta-config',
+        icon: Shuffle,
+        featureKey: 'lead_automations',
       },
       {
         name: t('menu.settings.integrations'),

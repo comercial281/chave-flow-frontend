@@ -64,6 +64,8 @@ import { Visits } from '@/pages/Customer/Visits';
 import { Proposals } from '@/pages/Customer/Proposals';
 import { PropertyCaptureRequests } from '@/pages/Customer/PropertyCapture';
 import ClientInstances from '@/pages/SuperAdmin/ClientInstances';
+import AutomationTemplatesPage from '@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates';
+import RoletaConfigPage from '@/pages/Customer/Settings/RoletaConfig/RoletaConfig';
 import { PropertyInterests } from '@/pages/Customer/PropertyInterests';
 import { Macros } from '@/pages/Customer/Settings/Macros';
 import WhatsappReminders from '@/pages/Customer/Settings/WhatsappReminders';
@@ -1557,6 +1559,30 @@ const AppRouter = () => {
               <PrivateRoute>
                 <MainLayout>
                   <ClientInstances />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Super Admin — biblioteca de templates de automacao */}
+          <Route
+            path="/super-admin/automation-templates"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <AutomationTemplatesPage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Settings — roleta de corretores */}
+          <Route
+            path="/settings/roleta-config"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <RoletaConfigPage />
                 </MainLayout>
               </PrivateRoute>
             }

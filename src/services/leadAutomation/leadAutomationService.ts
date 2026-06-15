@@ -84,18 +84,22 @@ export const TRIGGER_LABELS: Record<string, string> = {
 };
 
 // Actions processadas pelo LeadAutomation::Executor.
-// 'wait' é no-op no executor (só faz sentido em FollowupSequence step) — removido da UI.
 export const ACTION_TYPE_LABELS: Record<string, string> = {
   send_whatsapp_message:   'Enviar mensagem WhatsApp',
-  send_audio:              'Enviar áudio',
+  send_audio:              'Enviar audio',
   send_image:              'Enviar imagem',
-  send_video:              'Enviar vídeo',
-  start_followup_sequence: 'Iniciar sequência de follow-up',
+  send_video:              'Enviar video',
+  send_document:           'Enviar documento',
+  start_followup_sequence: 'Iniciar sequencia de follow-up',
   assign_broker:           'Atribuir corretor',
+  assign_via_roleta:       'Distribuir via roleta',
   add_label:               'Adicionar etiqueta',
   remove_label:            'Remover etiqueta',
   move_pipeline_stage:     'Mover no pipeline',
   create_task:             'Criar tarefa',
   notify_group:            'Notificar grupo',
-  send_quick_reply:        'Enviar resposta rápida',
+  notify_broker:           'Notificar corretor (WhatsApp pessoal)',
+  notify_gestor:           'Notificar gestor (WhatsApp)',
+  send_quick_reply:        'Enviar resposta rapida',
+  wait:                    'Aguardar (delay)',
 };

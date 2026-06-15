@@ -35,6 +35,7 @@ const ACTIONS_REQUIRING_PARAMS: Record<string, string[]> = {
   send_audio:              ['media_url'],
   send_image:              ['media_url'],
   send_video:              ['media_url'],
+  send_document:           ['media_url'],
   start_followup_sequence: ['sequence_slug'],
   assign_broker:           ['user_id'],
   add_label:               ['label_id'],
@@ -43,6 +44,9 @@ const ACTIONS_REQUIRING_PARAMS: Record<string, string[]> = {
   create_task:             ['title'],
   notify_group:            ['group_jid', 'message'],
   send_quick_reply:        ['quick_reply_id'],
+  notify_broker:           ['message'],
+  notify_gestor:           ['message'],
+  // assign_via_roleta e wait não têm params obrigatórios
 };
 
 // ============================================================================
@@ -455,6 +459,85 @@ export function ActionEditor({ action, onChange, resources }: ActionEditorProps)
         </Field>
       );
 
+    // ----- send_document -----
+    case 'send_document':
+      return (
+        <>
+          <Field label="URL do documento *" hint="PDF, DOCX, etc. Deve ser uma URL pública.">
+            <Input
+              value={String(params.media_url ?? '')}
+              onChange={e => setParam('media_url', e.target.value)}
+              placeholder="https://..."
+              className="mt-1"
+            />
+          </Field>
+          <Field label="Nome do arquivo">
+            <Input
+              value={String(params.filename ?? '')}
+              onChange={e => setParam('filename', e.target.value)}
+              placeholder="proposta.pdf"
+              className="mt-1"
+            />
+          </Field>
+        </>
+      );
+
+    // ----- assign_via_roleta -----
+    case 'assign_via_roleta':
+      return (
+        <p className="text-sm text-muted-foreground mt-1">
+          Atribui o lead ao proximo corretor disponivel conforme a roleta configurada para o inbox.
+        </p>
+      );
+
+    // ----- wait -----
+    case 'wait':
+      return (
+        <Field label="Aguardar (minutos) *">
+          <Input
+            type="number"
+            min={1}
+            value={Number(params.minutes ?? 60)}
+            onChange={e => setParam('minutes', parseInt(e.target.value) || 1)}
+            className="mt-1"
+          />
+        </Field>
+      );
+
+    // ----- notify_broker -----
+    case 'notify_broker':
+      return (
+        <Field
+          label="Mensagem para o corretor *"
+          hint="Enviada no WhatsApp pessoal do corretor atribuido. Variaveis: {{nome}}, {{telefone}}, {{link_do_card}}"
+        >
+          <Textarea
+            value={String(params.message ?? '')}
+            onChange={e => setParam('message', e.target.value)}
+            placeholder="Novo lead: {{nome}} — {{telefone}}"
+            rows={3}
+            className="mt-1 resize-none"
+          />
+        </Field>
+      );
+
+    // ----- notify_gestor -----
+    case 'notify_gestor':
+      return (
+        <Field
+          label="Mensagem para o gestor *"
+          hint="Enviada no numero do gestor configurado na Roleta. Variaveis: {{nome}}, {{telefone}}, {{link_do_card}}"
+        >
+          <Textarea
+            value={String(params.message ?? '')}
+            onChange={e => setParam('message', e.target.value)}
+            placeholder="Lead {{nome}} atribuido a {{corretor}}"
+            rows={3}
+            className="mt-1 resize-none"
+          />
+        </Field>
+      );
+
     default:
       return null;
   }
@@ -583,8 +666,18 @@ export function formatActionSummary(
       return p.group_jid ? `Grupo: ${String(p.group_jid).slice(0, 30)}…` : '(sem grupo)';
     case 'send_quick_reply': {
       const qr = resources.quickReplies.find(q => q.id === p.quick_reply_id);
-      return qr ? `Resposta: ${qr.title}` : '(não definida)';
+      return qr ? `Resposta: ${qr.title}` : '(nao definida)';
     }
+    case 'send_document':
+      return p.filename ? `Documento: ${p.filename}` : p.media_url ? `Documento: ${String(p.media_url).slice(0, 40)}...` : '(sem documento)';
+    case 'assign_via_roleta':
+      return 'Distribui via roleta';
+    case 'wait':
+      return p.minutes ? `Aguarda ${p.minutes} min` : '(delay nao definido)';
+    case 'notify_broker':
+      return p.message ? `Corretor: "${String(p.message).slice(0, 50)}..."` : '(mensagem vazia)';
+    case 'notify_gestor':
+      return p.message ? `Gestor: "${String(p.message).slice(0, 50)}..."` : '(mensagem vazia)';
     default:
       return '';
   }
