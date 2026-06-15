@@ -31,7 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@evoapi/design-system';
-import { Plus, Trash2, ChevronsUpDown, Check } from 'lucide-react';
+import { Plus, Trash2, ChevronsUpDown, Check, Megaphone, ExternalLink } from 'lucide-react';
 import { PipelineItem, PipelineStage, Pipeline, PipelineTask, CreateTaskData, UpdateTaskData, PipelineServiceDefinition } from '@/types/analytics';
 import pipelineServiceDefinitionsService from '@/services/pipelines/pipelineServiceDefinitionsService';
 import PipelineItemCustomAttributes from './PipelineItemCustomAttributes';
@@ -59,6 +59,101 @@ interface EditItemModalProps {
     custom_attributes?: Record<string, unknown>;
   }) => void;
   loading: boolean;
+}
+
+// ─── MetaAdsTab ──────────────────────────────────────────────────────────────
+
+interface AdReferral {
+  title?: string;
+  body?: string;
+  source_app?: string;
+  source_id?: string;
+  source_url?: string;
+  ad_media_type?: string;
+  first_message_text?: string;
+  lead_hour?: number;
+  lead_weekday?: string;
+  is_forwarded?: boolean;
+  ctwa_clid?: string;
+  thumbnail_url?: string;
+  captured_at?: string;
+}
+
+function MetaAdsTab({ item }: { item: PipelineItem }) {
+  const ref = item.conversation?.additional_attributes?.ad_referral as AdReferral | undefined;
+
+  if (!ref) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground gap-3">
+        <Megaphone className="h-8 w-8 opacity-30" />
+        <p className="text-sm">Este lead nao chegou por um anuncio do Meta.<br />Dados de rastreio aparecem aqui quando o lead clicar num anuncio CTWA.</p>
+      </div>
+    );
+  }
+
+  const platform = ref.source_app === 'instagram' ? 'Instagram' : ref.source_app === 'facebook' ? 'Facebook' : ref.source_app;
+  const weekdayMap: Record<string, string> = { monday: 'Segunda', tuesday: 'Terca', wednesday: 'Quarta', thursday: 'Quinta', friday: 'Sexta', saturday: 'Sabado', sunday: 'Domingo' };
+  const weekday = ref.lead_weekday ? (weekdayMap[ref.lead_weekday] || ref.lead_weekday) : null;
+
+  const Row = ({ label, value }: { label: string; value?: string | number | boolean | null }) => {
+    if (value === undefined || value === null || value === '') return null;
+    return (
+      <div className="flex justify-between items-start py-2 border-b border-border/50 last:border-0 gap-4">
+        <span className="text-xs text-muted-foreground shrink-0 pt-0.5">{label}</span>
+        <span className="text-xs text-right break-all">{String(value)}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header card */}
+      <div className="rounded-lg border border-orange-200 bg-orange-50/40 dark:bg-orange-950/20 dark:border-orange-900 p-4">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-orange-600 dark:text-orange-400 shrink-0" />
+            <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Origem do anuncio</span>
+          </div>
+          {platform && (
+            <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full shrink-0">
+              {platform}
+            </span>
+          )}
+        </div>
+        {ref.title && <p className="text-sm font-medium mb-1">{ref.title}</p>}
+        {ref.body && <p className="text-xs text-muted-foreground leading-relaxed">{ref.body}</p>}
+        {ref.source_url && (
+          <a
+            href={ref.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 mt-2 hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Ver anuncio original
+          </a>
+        )}
+      </div>
+
+      {/* Intelligence data */}
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Inteligencia do lead</p>
+        <Row label="Horario de entrada" value={ref.lead_hour !== undefined ? `${ref.lead_hour}h` : null} />
+        <Row label="Dia da semana" value={weekday} />
+        <Row label="Primeira mensagem" value={ref.first_message_text} />
+        <Row label="Tipo de midia do anuncio" value={ref.ad_media_type} />
+        <Row label="Mensagem encaminhada" value={ref.is_forwarded ? 'Sim' : 'Nao'} />
+        <Row label="Capturado em" value={ref.captured_at ? new Date(ref.captured_at).toLocaleString('pt-BR') : null} />
+      </div>
+
+      {/* Technical IDs */}
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">IDs para atribuicao</p>
+        <Row label="ID do anuncio" value={ref.source_id} />
+        <Row label="ctwa_clid" value={ref.ctwa_clid} />
+      </div>
+    </div>
+  );
 }
 
 export default function EditItemModal({
@@ -264,7 +359,7 @@ export default function EditItemModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="details">{t('editItem.tabs.details')}</TabsTrigger>
             <TabsTrigger value="conversation">Conversa</TabsTrigger>
             <TabsTrigger value="services">{t('editItem.tabs.services')}</TabsTrigger>
@@ -275,6 +370,13 @@ export default function EditItemModal({
                 <span className="ml-2 px-1.5 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
                   {pendingCount + overdueCount}
                 </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="meta" className="relative">
+              <Megaphone className="h-3.5 w-3.5 mr-1" />
+              Meta
+              {Boolean(item.conversation?.additional_attributes?.ad_referral) && (
+                <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
               )}
             </TabsTrigger>
           </TabsList>
@@ -509,6 +611,11 @@ export default function EditItemModal({
                 onAddSubtask={handleAddSubtaskClick}
               />
             )}
+          </TabsContent>
+
+          {/* Meta Ads Tab */}
+          <TabsContent value="meta" className="py-4 overflow-y-auto max-h-[60vh]">
+            <MetaAdsTab item={item} />
           </TabsContent>
         </Tabs>
 
