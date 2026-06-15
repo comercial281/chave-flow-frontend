@@ -2,6 +2,20 @@ import apiClient from '@/services/core/api';
 
 export type InstanceStatus = 'pending' | 'provisioning_railway' | 'active' | 'error';
 
+export interface ClientInstanceSnapshot {
+  date: string;
+  backend_reachable: boolean;
+  evolution_connected: boolean;
+  leads_count: number;
+  conversations_count: number;
+  messages_count: number;
+  inboxes_count: number;
+  railway_monthly_cost_brl: number | null;
+  evolution_cost_brl: number | null;
+  total_monthly_cost_brl: number | null;
+  total_monthly_cost_cents: number | null;
+}
+
 export interface ClientInstance {
   id: number;
   name: string;
@@ -9,6 +23,7 @@ export interface ClientInstance {
   admin_email: string;
   admin_name: string | null;
   status: InstanceStatus;
+  archived_at: string | null;
   backend_url: string | null;
   frontend_link: string | null;
   error_message: string | null;
@@ -16,6 +31,21 @@ export interface ClientInstance {
   enabled_features?: Record<string, boolean>;
   resolved_features?: Record<string, boolean>;
   created_at: string;
+  snapshot?: ClientInstanceSnapshot | null;
+}
+
+export interface DashboardOverview {
+  total_count: number;
+  healthy_count: number;
+  total_monthly_cost_brl: number;
+  total_leads: number;
+  total_conversations: number;
+  total_messages: number;
+}
+
+export interface DashboardData {
+  instances: ClientInstance[];
+  overview: DashboardOverview;
 }
 
 export interface FeatureCatalogItem {
@@ -55,8 +85,17 @@ export interface CreateTenantUserPayload {
 }
 
 const clientInstancesService = {
-  list: () =>
-    apiClient.get<{ data: ClientInstance[] }>('/client_instances'),
+  list: (archived = false) =>
+    apiClient.get<{ data: ClientInstance[] }>('/client_instances', { params: { archived } }),
+
+  dashboard: () =>
+    apiClient.get<{ success: boolean; data: DashboardData }>('/client_instances/dashboard'),
+
+  archive: (id: number) =>
+    apiClient.post<{ success: boolean; data: ClientInstance }>(`/client_instances/${id}/archive`, {}),
+
+  unarchive: (id: number) =>
+    apiClient.post<{ success: boolean; data: ClientInstance }>(`/client_instances/${id}/unarchive`, {}),
 
   get: (id: number) =>
     apiClient.get<{ data: ClientInstance }>(`/client_instances/${id}`),

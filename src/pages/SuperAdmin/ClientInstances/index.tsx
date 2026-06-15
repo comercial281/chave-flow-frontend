@@ -1,11 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, RefreshCw, Building2, CheckCircle, AlertCircle, Loader2, Copy, ExternalLink, Trash2, ChevronDown, ChevronUp, Users, ToggleLeft } from 'lucide-react';
+import {
+  Plus, RefreshCw, Building2, CheckCircle, AlertCircle, Loader2,
+  Copy, ExternalLink, Trash2, ChevronDown, ChevronUp, Users, ToggleLeft,
+  BarChart3, List, Archive, ArchiveRestore,
+} from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@evoapi/design-system';
-import clientInstancesService, { ClientInstance, CreateClientInstancePayload } from '@/services/clientInstances/clientInstancesService';
+import clientInstancesService, {
+  ClientInstance, CreateClientInstancePayload, DashboardData,
+} from '@/services/clientInstances/clientInstancesService';
 import { buildMasterSsoUrl } from '@/utils/masterSso';
 import { useAuth } from '@/contexts/AuthContext';
 import MembersModal from './MembersModal';
 import FeaturesModal from './FeaturesModal';
+import DashboardView from './DashboardView';
+
+type ViewTab = 'list' | 'dashboard';
 
 const STATUS_LABEL: Record<string, string> = {
   pending:               'Aguardando',
@@ -27,9 +36,10 @@ function StatusIcon({ status }: { status: string }) {
   return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
 }
 
-function InstanceCard({ instance, onDelete, onRefresh }: {
+function InstanceCard({ instance, onDelete, onArchive, onRefresh }: {
   instance: ClientInstance;
   onDelete: () => void;
+  onArchive: () => void;
   onRefresh?: () => void;
 }) {
   const [expanded, setExpanded]         = useState(false);
@@ -88,7 +98,7 @@ function InstanceCard({ instance, onDelete, onRefresh }: {
           {instance.status === 'active' && (
             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setFeaturesOpen(true)}>
               <ToggleLeft className="h-3 w-3" />
-              Funções
+              Funcoes
             </Button>
           )}
           {instance.status === 'active' && instance.frontend_link && (
@@ -108,6 +118,15 @@ function InstanceCard({ instance, onDelete, onRefresh }: {
               </Button>
             </>
           )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-orange-600"
+            title="Arquivar"
+            onClick={onArchive}
+          >
+            <Archive className="h-3.5 w-3.5" />
+          </Button>
           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={onDelete}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -145,7 +164,7 @@ function InstanceCard({ instance, onDelete, onRefresh }: {
           )}
           {instance.provisioning_log.length > 0 && (
             <div className="mt-2">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Log de criação</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Log de criacao</p>
               <div className="bg-muted rounded p-2 space-y-0.5 max-h-40 overflow-y-auto">
                 {instance.provisioning_log.map((entry, i) => (
                   <p key={i} className="text-xs font-mono">
@@ -185,12 +204,7 @@ function NewClientModal({ open, onClose, onCreate }: {
       setForm({ name: '', admin_email: '', admin_name: '' });
     } catch (e: any) {
       const d = e?.response?.data;
-      setError(
-        d?.errors?.join(', ') ??
-        d?.error ??
-        d?.message ??
-        'Erro ao criar instância'
-      );
+      setError(d?.errors?.join(', ') ?? d?.error ?? d?.message ?? 'Erro ao criar instancia');
     } finally {
       setLoading(false);
     }
@@ -204,18 +218,18 @@ function NewClientModal({ open, onClose, onCreate }: {
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div>
-            <Label>Nome da imobiliária *</Label>
+            <Label>Nome da imobiliaria *</Label>
             <Input
-              placeholder="Ex: Imobiliária Casa Grande"
+              placeholder="Ex: Imobiliaria Casa Grande"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               className="mt-1"
             />
           </div>
           <div>
-            <Label>Nome do responsável</Label>
+            <Label>Nome do responsavel</Label>
             <Input
-              placeholder="Ex: João Silva"
+              placeholder="Ex: Joao Silva"
               value={form.admin_name}
               onChange={e => setForm(f => ({ ...f, admin_name: e.target.value }))}
               className="mt-1"
@@ -231,7 +245,7 @@ function NewClientModal({ open, onClose, onCreate }: {
               className="mt-1"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Este será o login do cliente no CRM dele.
+              Este sera o login do cliente no CRM dele.
             </p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -250,36 +264,73 @@ function NewClientModal({ open, onClose, onCreate }: {
 
 export default function ClientInstances() {
   const { user } = useAuth();
-  const [instances, setInstances] = useState<ClientInstance[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [tab, setTab]               = useState<ViewTab>('list');
+  const [showArchived, setShowArchived] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const [instances, setInstances]   = useState<ClientInstance[]>([]);
+  const [loadingList, setLoadingList] = useState(true);
+
+  const [dashData, setDashData]     = useState<DashboardData | null>(null);
+  const [loadingDash, setLoadingDash] = useState(false);
+
+  const [modalOpen, setModalOpen]   = useState(false);
+
+  const loadList = useCallback(async () => {
+    setLoadingList(true);
     try {
-      const res = await clientInstancesService.list();
+      const res = await clientInstancesService.list(showArchived);
       setInstances(res.data.data);
     } catch {
       setInstances([]);
     } finally {
-      setLoading(false);
+      setLoadingList(false);
+    }
+  }, [showArchived]);
+
+  const loadDashboard = useCallback(async () => {
+    setLoadingDash(true);
+    try {
+      const res = await clientInstancesService.dashboard();
+      setDashData(res.data.data);
+    } catch {
+      setDashData(null);
+    } finally {
+      setLoadingDash(false);
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadList(); }, [loadList]);
+  useEffect(() => { if (tab === 'dashboard') loadDashboard(); }, [tab, loadDashboard]);
 
-  // Auto-refresh while any instance is still provisioning
+  // Auto-refresh while provisioning
   useEffect(() => {
     const provisioning = instances.some(i => i.status !== 'active' && i.status !== 'error');
     if (!provisioning) return;
-    const t = setTimeout(load, 10_000);
+    const t = setTimeout(loadList, 10_000);
     return () => clearTimeout(t);
-  }, [instances, load]);
+  }, [instances, loadList]);
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Remover esta instância? Isso não apaga o Railway/Vercel, só o registro.')) return;
+    if (!confirm('Remover esta instancia? Isso nao apaga o Railway/Vercel, so o registro.')) return;
     await clientInstancesService.delete(id);
-    load();
+    loadList();
+  };
+
+  const handleArchive = async (id: number) => {
+    if (!confirm('Arquivar este cliente? Ele some da lista principal mas pode ser restaurado.')) return;
+    await clientInstancesService.archive(id);
+    loadList();
+    if (tab === 'dashboard') loadDashboard();
+  };
+
+  const handleUnarchive = async (id: number) => {
+    await clientInstancesService.unarchive(id);
+    loadList();
+  };
+
+  const handleRefresh = () => {
+    if (tab === 'list') loadList();
+    else loadDashboard();
   };
 
   if (user?.email !== 'comercial@lealmidia.com.br') {
@@ -303,10 +354,10 @@ export default function ClientInstances() {
               <Building2 className="h-6 w-6 text-primary" />
               Clientes CRM
             </h1>
-            <p className="text-sm text-muted-foreground">Gerencie as instâncias LM Flow de cada cliente</p>
+            <p className="text-sm text-muted-foreground">Gerencie as instancias LM Flow de cada cliente</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={load}>
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
@@ -317,7 +368,8 @@ export default function ClientInstances() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
             <p className="text-xs text-emerald-700 dark:text-emerald-400">Ativos</p>
             <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{active}</p>
@@ -331,42 +383,108 @@ export default function ClientInstances() {
             <p className="text-2xl font-bold">{instances.length}</p>
           </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b -mb-[17px]">
+          <button
+            onClick={() => setTab('list')}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === 'list'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <List className="h-3.5 w-3.5" />
+            Lista
+          </button>
+          <button
+            onClick={() => setTab('dashboard')}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === 'dashboard'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            Dashboard
+          </button>
+        </div>
       </div>
 
-      {/* List */}
+      {/* Content */}
       <div className="flex-1 overflow-auto px-6 py-4">
-        {loading ? (
-          <div className="flex items-center justify-center h-48 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Carregando...
-          </div>
-        ) : instances.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
-            <Building2 className="h-12 w-12 opacity-20" />
-            <p className="font-medium">Nenhum cliente ainda</p>
-            <Button size="sm" onClick={() => setModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar primeiro cliente
-            </Button>
-          </div>
+        {tab === 'list' ? (
+          <>
+            {/* Archived toggle */}
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={() => setShowArchived(v => !v)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showArchived ? <ArchiveRestore className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
+                {showArchived ? 'Ver ativos' : 'Ver arquivados'}
+              </button>
+            </div>
+
+            {loadingList ? (
+              <div className="flex items-center justify-center h-48 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Carregando...
+              </div>
+            ) : instances.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
+                <Building2 className="h-12 w-12 opacity-20" />
+                <p className="font-medium">{showArchived ? 'Nenhum cliente arquivado' : 'Nenhum cliente ainda'}</p>
+                {!showArchived && (
+                  <Button size="sm" onClick={() => setModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar primeiro cliente
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {instances.map(i => (
+                  showArchived ? (
+                    <div key={i.id} className="bg-card border rounded-lg p-4 flex items-center justify-between opacity-70">
+                      <div className="flex items-center gap-3">
+                        <Archive className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-sm">{i.name}</p>
+                          <p className="text-xs text-muted-foreground">{i.admin_email}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleUnarchive(i.id)}>
+                        <ArchiveRestore className="h-3 w-3" />
+                        Restaurar
+                      </Button>
+                    </div>
+                  ) : (
+                    <InstanceCard
+                      key={i.id}
+                      instance={i}
+                      onDelete={() => handleDelete(i.id)}
+                      onArchive={() => handleArchive(i.id)}
+                      onRefresh={loadList}
+                    />
+                  )
+                ))}
+              </div>
+            )}
+          </>
         ) : (
-          <div className="space-y-3">
-            {instances.map(i => (
-              <InstanceCard
-                key={i.id}
-                instance={i}
-                onDelete={() => handleDelete(i.id)}
-                onRefresh={load}
-              />
-            ))}
-          </div>
+          <DashboardView
+            data={dashData}
+            loading={loadingDash}
+            onArchive={handleArchive}
+          />
         )}
       </div>
 
       <NewClientModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onCreate={load}
+        onCreate={loadList}
       />
     </div>
   );
