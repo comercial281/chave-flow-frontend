@@ -1105,11 +1105,13 @@ const Profile = () => {
           </p>
           <Button
             variant="destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-            className="min-w-[140px]"
+            disabled
+            className="min-w-[140px] opacity-50 cursor-not-allowed"
+            title="Em breve"
           >
             {t('dangerZone.deleteAccount.button')}
           </Button>
+          <p className="text-xs text-muted-foreground mt-2">Em breve disponível.</p>
         </div>
       </CardContent>
     </Card>
