@@ -338,6 +338,12 @@
   }
 }
 
+/* ─── Dashboard pulse dot ───────────────────────────────────────────────── */
+@keyframes lmd-pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50%       { transform: scale(2.2); opacity: 0; }
+}
+
 /* ─── LM Flow Login Background ─────────────────────────────────────────── */
 @keyframes lmf-float-1 {
   0%, 100% { transform: translate(0, 0) scale(1); }

@@ -12,6 +12,21 @@ interface DashboardTrendsSectionProps {
   channelShareData: Array<{ name: string; value: number; color: string }>;
 }
 
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-1 h-6 rounded-full shrink-0"
+          style={{ background: 'linear-gradient(to bottom, #7c3aed, #9333ea)' }}
+        />
+        <h2 className="text-lg font-semibold">{title}</h2>
+      </div>
+      <p className="text-sm text-muted-foreground mt-1 ml-4">{subtitle}</p>
+    </div>
+  );
+}
+
 const DashboardTrendsSection = ({ data, t, channelShareData }: DashboardTrendsSectionProps) => {
   const { t: tTours } = useTranslation('tours');
   const tx = (key: string, fallback: string) => {
@@ -30,12 +45,10 @@ const DashboardTrendsSection = ({ data, t, channelShareData }: DashboardTrendsSe
 
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">{tx('dashboard.sections.trends', 'Tendências no tempo')}</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          {tx('dashboard.sections.trendsSubtitle', 'Evolução da operação ao longo do período filtrado')}
-        </p>
-      </div>
+      <SectionHeader
+        title={tx('dashboard.sections.trends', 'Tendências no tempo')}
+        subtitle={tx('dashboard.sections.trendsSubtitle', 'Evolução da operação ao longo do período filtrado')}
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div data-tour="dashboard-trends-conversations" className="h-full">
@@ -83,42 +96,89 @@ const DashboardTrendsSection = ({ data, t, channelShareData }: DashboardTrendsSe
           />
         </div>
 
-        <Card data-tour="dashboard-channel-insights">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+        {/* Channel insights — upgraded */}
+        <Card
+          data-tour="dashboard-channel-insights"
+          className="relative overflow-hidden"
+          style={{
+            borderColor: 'rgba(124,58,237,0.15)',
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.03) 0%, transparent 60%)',
+          }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full blur-2xl"
+            style={{ background: 'rgba(124,58,237,0.07)' }}
+          />
+          <CardHeader className="pb-3 relative">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div
+                className="w-0.5 h-4 rounded-full shrink-0"
+                style={{ background: 'linear-gradient(to bottom, #7c3aed, #9333ea)' }}
+              />
               {tx('dashboard.channels.insights', 'Insights de canais')}
               <TooltipInfo title={tTours('dashboard.step12.title')} content={tTours('dashboard.step12.content')} />
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-md border p-3 bg-muted/10 flex items-center justify-between gap-3">
+          <CardContent className="space-y-3 relative">
+            {/* Top channel */}
+            <div
+              className="rounded-xl border p-3 flex items-center justify-between gap-3"
+              style={{
+                borderColor: 'rgba(124,58,237,0.15)',
+                background: 'rgba(124,58,237,0.04)',
+              }}
+            >
               <div>
-                <div className="text-sm text-muted-foreground">{tx('dashboard.channels.topChannel', 'Canal líder')}</div>
-                <div className="font-semibold">{topChannel?.name || '-'}</div>
+                <div className="text-xs text-muted-foreground mb-0.5">
+                  {tx('dashboard.channels.topChannel', 'Canal líder')}
+                </div>
+                <div className="font-semibold text-sm">{topChannel?.name || '-'}</div>
               </div>
-              <Badge variant="secondary">{topChannel?.percentage?.toFixed(2) || '0.00'}%</Badge>
+              <Badge
+                variant="secondary"
+                className="text-violet-400 bg-violet-500/10 border-violet-500/20 shrink-0"
+              >
+                {topChannel?.percentage?.toFixed(2) || '0.00'}%
+              </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="rounded-md border p-3 bg-muted/10">
-                <div className="text-sm text-muted-foreground">{tx('dashboard.channels.concentration', 'Concentração Top 3')}</div>
-                <div className="text-xl font-semibold">{top3Share.toFixed(2)}%</div>
-              </div>
-              <div className="rounded-md border p-3 bg-muted/10">
-                <div className="text-sm text-muted-foreground">{tx('dashboard.channels.activeCount', 'Canais ativos')}</div>
-                <div className="text-xl font-semibold">{data.channels.length}</div>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <StatBox
+                label={tx('dashboard.channels.concentration', 'Top 3 canais')}
+                value={`${top3Share.toFixed(1)}%`}
+              />
+              <StatBox
+                label={tx('dashboard.channels.activeCount', 'Canais ativos')}
+                value={String(data.channels.length)}
+              />
             </div>
 
-            <div className="rounded-md border p-3 bg-muted/10">
-              <div className="text-sm text-muted-foreground">{tx('dashboard.channels.totalValue', 'Valor total por canais')}</div>
-              <div className="text-xl font-semibold">{formatCurrency(channelsRevenue)}</div>
-            </div>
+            <StatBox
+              label={tx('dashboard.channels.totalValue', 'Valor total gerado')}
+              value={formatCurrency(channelsRevenue)}
+              large
+            />
           </CardContent>
         </Card>
       </div>
     </section>
   );
 };
+
+function StatBox({ label, value, large }: { label: string; value: string; large?: boolean }) {
+  return (
+    <div
+      className="rounded-xl border p-3"
+      style={{
+        borderColor: 'rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.02)',
+      }}
+    >
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className={large ? 'text-2xl font-bold' : 'text-xl font-semibold'}>{value}</div>
+    </div>
+  );
+}
 
 export default DashboardTrendsSection;

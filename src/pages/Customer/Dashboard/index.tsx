@@ -271,7 +271,13 @@ const CustomerDashboardPage = () => {
   }
 
   return (
-    <div className="h-full flex flex-col p-4 gap-6">
+    <div
+      className="h-full flex flex-col p-4 gap-6"
+      style={{
+        background:
+          'radial-gradient(ellipse 70% 40% at 85% 0%, rgba(124,58,237,0.07) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 5% 100%, rgba(147,51,234,0.05) 0%, transparent 50%)',
+      }}
+    >
       <DashboardTour />
       <div data-tour="dashboard-header">
         <BaseHeader
