@@ -59,7 +59,6 @@ interface ChatSidebarProps {
   onConversationSelect: (conversation: Conversation) => void;
   onFilterApply: (filters: BaseFilter[]) => void;
   onFilterClear: () => void;
-  // Context menu handlers
   onMarkAsRead: (conversation: Conversation) => void;
   onMarkAsUnread: (conversation: Conversation) => void;
   onMarkAsOpen: (conversation: Conversation) => void;
@@ -78,6 +77,16 @@ interface ChatSidebarProps {
   onAssignTeam: (conversation: Conversation) => void;
   onAssignTag: (conversation: Conversation) => void;
   onDeleteConversation: (conversation: Conversation) => void;
+}
+
+function getUrgencyColor(timestamp: number | string | undefined): string {
+  if (!timestamp) return 'transparent';
+  const ts = typeof timestamp === 'number' ? timestamp : Date.parse(String(timestamp));
+  if (Number.isNaN(ts)) return 'transparent';
+  const hours = (Date.now() - ts) / 3_600_000;
+  if (hours < 1) return '#10b981';
+  if (hours < 4) return '#f59e0b';
+  return '#ef4444';
 }
 
 const ChatSidebar = ({
@@ -105,7 +114,6 @@ const ChatSidebar = ({
 }: ChatSidebarProps) => {
   const { t } = useLanguage('chat');
   const chatContext = useChatContext();
-  // Explicitly type conversations to ensure TypeScript recognizes it has 'state'
   const conversations = chatContext.conversations as typeof chatContext.conversations & {
     state: {
       conversations: Conversation[];
@@ -132,11 +140,7 @@ const ChatSidebar = ({
   const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
 
-  // ðŸŽ¯ SYNC: Sincronizar local state com FiltersContext para compatibilidade com o modal
   useEffect(() => {
-    // Quando filters.state.activeFilters mudar (ex: por applyFilters chamado diretamente),
-    // atualizar o local state tambÃ©m para que o modal mostre os filtros corretos
-    // ConversationFilter (API format) -> BaseFilter (UI format)
     const currentLocal = JSON.stringify(conversationFilters);
     const currentContext = JSON.stringify(
       filters.state.activeFilters.map((f: ConversationFilter) => ({
@@ -338,7 +342,6 @@ const ChatSidebar = ({
     return cleanContent.length > 60 ? cleanContent.substring(0, 60) + '...' : cleanContent;
   };
 
-  // Render conversation context menu
   const renderConversationContextMenu = (conversation: Conversation, children: React.ReactNode) => {
     const currentStatus = conversation.status;
     const hasUnreadMessages =
@@ -350,13 +353,9 @@ const ChatSidebar = ({
       <ContextMenu key={conversation.id}>
         <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
         <ContextMenuContent className="w-56">
-          {/* Read/Unread Actions */}
           {hasUnreadMessages ? (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onMarkAsRead(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onMarkAsRead(conversation); }}
               className="flex items-center gap-2"
             >
               <MailOpen className="h-4 w-4" />
@@ -364,10 +363,7 @@ const ChatSidebar = ({
             </ContextMenuItem>
           ) : (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onMarkAsUnread(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onMarkAsUnread(conversation); }}
               className="flex items-center gap-2"
             >
               <Mail className="h-4 w-4" />
@@ -377,13 +373,9 @@ const ChatSidebar = ({
 
           <ContextMenuSeparator />
 
-          {/* Status Actions */}
           {currentStatus !== 'open' && (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onMarkAsOpen(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onMarkAsOpen(conversation); }}
               className="flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
@@ -393,10 +385,7 @@ const ChatSidebar = ({
 
           {currentStatus !== 'resolved' && (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onMarkAsResolved(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onMarkAsResolved(conversation); }}
               className="flex items-center gap-2"
             >
               <CheckCircle className="h-4 w-4" />
@@ -406,10 +395,7 @@ const ChatSidebar = ({
 
           {currentStatus !== 'pending' && (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onPostpone(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onPostpone(conversation); }}
               className="flex items-center gap-2"
             >
               <Clock className="h-4 w-4" />
@@ -419,10 +405,7 @@ const ChatSidebar = ({
 
           {currentStatus !== 'snoozed' && (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onMarkAsSnoozed(conversation);
-              }}
+              onClick={e => { e.stopPropagation(); onMarkAsSnoozed(conversation); }}
               className="flex items-center gap-2"
             >
               <Pause className="h-4 w-4" />
@@ -432,12 +415,8 @@ const ChatSidebar = ({
 
           <ContextMenuSeparator />
 
-          {/* Priority Actions */}
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onSetPriority(conversation, 'urgent');
-            }}
+            onClick={e => { e.stopPropagation(); onSetPriority(conversation, 'urgent'); }}
             className="flex items-center gap-2"
           >
             <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -445,10 +424,7 @@ const ChatSidebar = ({
           </ContextMenuItem>
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onSetPriority(conversation, 'high');
-            }}
+            onClick={e => { e.stopPropagation(); onSetPriority(conversation, 'high'); }}
             className="flex items-center gap-2"
           >
             <ArrowUp className="h-4 w-4 text-orange-600" />
@@ -456,10 +432,7 @@ const ChatSidebar = ({
           </ContextMenuItem>
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onSetPriority(conversation, 'medium');
-            }}
+            onClick={e => { e.stopPropagation(); onSetPriority(conversation, 'medium'); }}
             className="flex items-center gap-2"
           >
             <Minus className="h-4 w-4 text-blue-600" />
@@ -467,10 +440,7 @@ const ChatSidebar = ({
           </ContextMenuItem>
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onSetPriority(conversation, 'low');
-            }}
+            onClick={e => { e.stopPropagation(); onSetPriority(conversation, 'low'); }}
             className="flex items-center gap-2"
           >
             <ArrowDown className="h-4 w-4 text-gray-600" />
@@ -479,10 +449,7 @@ const ChatSidebar = ({
 
           {conversation.priority && (
             <ContextMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                onSetPriority(conversation, null);
-              }}
+              onClick={e => { e.stopPropagation(); onSetPriority(conversation, null); }}
               className="flex items-center gap-2"
             >
               <X className="h-4 w-4" />
@@ -495,44 +462,29 @@ const ChatSidebar = ({
           <ContextMenuItem
             onClick={e => {
               e.stopPropagation();
-              if (isPinned) {
-                onUnpinConversation(conversation);
-              } else {
-                onPinConversation(conversation);
-              }
+              if (isPinned) { onUnpinConversation(conversation); } else { onPinConversation(conversation); }
             }}
             className="flex items-center gap-2"
           >
             <Pin className="h-4 w-4" />
-            {isPinned
-              ? t('chatHeader.actions.unpinConversation')
-              : t('chatHeader.actions.pinConversation')}
+            {isPinned ? t('chatHeader.actions.unpinConversation') : t('chatHeader.actions.pinConversation')}
           </ContextMenuItem>
 
           <ContextMenuItem
             onClick={e => {
               e.stopPropagation();
-              if (isArchived) {
-                onUnarchiveConversation(conversation);
-              } else {
-                onArchiveConversation(conversation);
-              }
+              if (isArchived) { onUnarchiveConversation(conversation); } else { onArchiveConversation(conversation); }
             }}
             className="flex items-center gap-2"
           >
             <Archive className="h-4 w-4" />
-            {isArchived
-              ? t('chatHeader.actions.unarchiveConversation')
-              : t('chatHeader.actions.archiveConversation')}
+            {isArchived ? t('chatHeader.actions.unarchiveConversation') : t('chatHeader.actions.archiveConversation')}
           </ContextMenuItem>
 
           <ContextMenuSeparator />
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onAssignAgent(conversation);
-            }}
+            onClick={e => { e.stopPropagation(); onAssignAgent(conversation); }}
             className="flex items-center gap-2"
           >
             <UserIcon className="h-4 w-4" />
@@ -540,10 +492,7 @@ const ChatSidebar = ({
           </ContextMenuItem>
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onAssignTeam(conversation);
-            }}
+            onClick={e => { e.stopPropagation(); onAssignTeam(conversation); }}
             className="flex items-center gap-2"
           >
             <Users className="h-4 w-4" />
@@ -551,10 +500,7 @@ const ChatSidebar = ({
           </ContextMenuItem>
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onAssignTag(conversation);
-            }}
+            onClick={e => { e.stopPropagation(); onAssignTag(conversation); }}
             className="flex items-center gap-2"
           >
             <Tag className="h-4 w-4" />
@@ -564,10 +510,7 @@ const ChatSidebar = ({
           <ContextMenuSeparator />
 
           <ContextMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              onDeleteConversation(conversation);
-            }}
+            onClick={e => { e.stopPropagation(); onDeleteConversation(conversation); }}
             className="flex items-center gap-2"
             variant="destructive"
           >
@@ -589,7 +532,6 @@ const ChatSidebar = ({
     >
       {/* Search and Filter Header */}
       <div className="p-4 border-b space-y-3">
-        {/* Search */}
         <div className="relative" data-tour="chat-search">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
           <Input
@@ -634,7 +576,6 @@ const ChatSidebar = ({
           </Button>
         </div>
 
-        {/* Filter Actions */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">
             {pagination?.total != null && pagination.total > visibleConversations.length
@@ -645,7 +586,6 @@ const ChatSidebar = ({
               : t('chatSidebar.conversations')}
           </span>
           <div className="flex items-center gap-2">
-            {/* Indicador de filtros ativos */}
             {filters.state.activeFilters.length > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {filters.state.activeFilters.length}{' '}
@@ -654,8 +594,6 @@ const ChatSidebar = ({
                   : t('chatSidebar.filters')}
               </Badge>
             )}
-
-            {/* Botão de filtros */}
             <Button
               variant="ghost"
               size="sm"
@@ -681,21 +619,11 @@ const ChatSidebar = ({
             {selectedConversations.size} selecionada{selectedConversations.size !== 1 ? 's' : ''}
           </span>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkResolve}
-              className="h-7 text-xs"
-            >
+            <Button size="sm" variant="outline" onClick={handleBulkResolve} className="h-7 text-xs">
               <CheckCircle className="h-3 w-3 mr-1" />
               Resolver todas
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setSelectedConversations(new Set())}
-              className="h-7 text-xs"
-            >
+            <Button size="sm" variant="ghost" onClick={() => setSelectedConversations(new Set())} className="h-7 text-xs">
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -734,14 +662,10 @@ const ChatSidebar = ({
               <div className="py-8">
                 <div className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {showArchived
-                    ? t('chatSidebar.emptyArchived.title')
-                    : t('chatSidebar.empty.title')}
+                  {showArchived ? t('chatSidebar.emptyArchived.title') : t('chatSidebar.empty.title')}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {showArchived
-                    ? t('chatSidebar.emptyArchived.description')
-                    : t('chatSidebar.empty.description')}
+                  {showArchived ? t('chatSidebar.emptyArchived.description') : t('chatSidebar.empty.description')}
                 </p>
               </div>
             )}
@@ -752,116 +676,142 @@ const ChatSidebar = ({
               const isSelected =
                 String(conversations.state.selectedConversationId) === String(conversation.id);
 
-              // Usar channel da conversa diretamente, com fallback para inbox
               const channelType =
                 conversation.inbox?.channel_type || conversation.inbox?.channel_type;
               const channelProvider = conversation.inbox?.provider;
+              const urgencyColor = getUrgencyColor(conversation.timestamp);
 
               return renderConversationContextMenu(
                 conversation,
                 <div
                   key={conversation.id}
-                  className={`p-4 hover:bg-accent cursor-pointer transition-colors ${
-                    isSelected
-                      ? 'bg-primary/10 border-l-2 border-l-primary'
-                      : 'border-b border-border/50'
+                  className={`relative hover:bg-accent cursor-pointer transition-colors ${
+                    isSelected ? 'bg-primary/10' : 'border-b border-border/50'
                   }`}
                   onClick={() => onConversationSelect(conversation)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedConversations.has(String(conversation.id))}
-                        onChange={e => {
-                          e.stopPropagation();
-                          setSelectedConversations(prev => {
-                            const next = new Set(prev);
-                            if (e.target.checked) next.add(String(conversation.id));
-                            else next.delete(String(conversation.id));
-                            return next;
-                          });
-                        }}
-                        onClick={e => e.stopPropagation()}
-                        className="mt-1 flex-shrink-0 cursor-pointer"
-                      />
-                      <ContactAvatar
-                        contact={conversation.contact}
-                        channelType={channelType}
-                        channelProvider={channelProvider}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium truncate">
-                                {conversation.contact?.name || t('chatSidebar.contactNoName')}
-                              </p>
-                              {conversation.contact?.phone_number && (
-                                <p className="text-xs text-muted-foreground/70 truncate">
-                                  {conversation.contact.phone_number}
+                  {/* Urgency strip — 3px left edge */}
+                  {!isSelected && conversation.status === 'open' && (
+                    <div
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 3,
+                        background: urgencyColor,
+                        borderRadius: '0 2px 2px 0',
+                        opacity: 0.85,
+                      }}
+                    />
+                  )}
+                  {/* Selected indicator */}
+                  {isSelected && (
+                    <div
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 3,
+                        background: 'var(--primary)',
+                        borderRadius: '0 2px 2px 0',
+                      }}
+                    />
+                  )}
+
+                  <div className="p-4 pl-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedConversations.has(String(conversation.id))}
+                          onChange={e => {
+                            e.stopPropagation();
+                            setSelectedConversations(prev => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(String(conversation.id));
+                              else next.delete(String(conversation.id));
+                              return next;
+                            });
+                          }}
+                          onClick={e => e.stopPropagation()}
+                          className="mt-1 flex-shrink-0 cursor-pointer"
+                        />
+                        <ContactAvatar
+                          contact={conversation.contact}
+                          channelType={channelType}
+                          channelProvider={channelProvider}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate">
+                                  {conversation.contact?.name || t('chatSidebar.contactNoName')}
                                 </p>
+                                {conversation.contact?.phone_number && (
+                                  <p className="text-xs text-muted-foreground/70 truncate">
+                                    {conversation.contact.phone_number}
+                                  </p>
+                                )}
+                              </div>
+                              {Boolean(conversation.custom_attributes?.pinned) && (
+                                <Pin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                              )}
+                              {conversation.additional_attributes?.conversation_type === 'post' && (
+                                <Badge
+                                  variant="outline"
+                                  className="h-4 px-1.5 text-[10px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700 flex-shrink-0"
+                                  title="Facebook Post"
+                                >
+                                  <FileText className="h-2.5 w-2.5 mr-0.5" />
+                                  Post
+                                </Badge>
                               )}
                             </div>
-                            {Boolean(conversation.custom_attributes?.pinned) && (
-                              <Pin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            )}
-                            {/* ðŸ“Œ Indicador de Post do Facebook */}
-                            {conversation.additional_attributes?.conversation_type === 'post' && (
-                              <Badge
-                                variant="outline"
-                                className="h-4 px-1.5 text-[10px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700 flex-shrink-0"
-                                title="Facebook Post"
-                              >
-                                <FileText className="h-2.5 w-2.5 mr-0.5" />
-                                Post
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                            {/* Timestamp */}
-                            <span
-                              className="text-xs text-muted-foreground"
-                              title={formatDetailedTime(conversation.timestamp)}
-                            >
-                              {formatConversationTime(conversation.timestamp)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground truncate">
-                          {getLastMessage(conversation)}
-                        </p>
-
-                        {/* Badges da conversa */}
-                        <ConversationBadges conversation={conversation} maxLabels={2} />
-
-                        {/* Assignee indicator badge */}
-                        {conversation?.assignee && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <div className="flex items-center space-x-1.5 px-2 py-1 rounded-md text-xs font-medium bg-primary/10 dark:bg-primary/20">
-                              <UserIcon className="h-3 w-3 flex-shrink-0 text-primary dark:text-primary" />
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                               <span
-                                className="truncate max-w-32 text-primary dark:text-primary/90"
-                                title={conversation.assignee?.name}
+                                className="text-xs text-muted-foreground"
+                                title={formatDetailedTime(conversation.timestamp)}
                               >
-                                {conversation.assignee?.name}
+                                {formatConversationTime(conversation.timestamp)}
                               </span>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      {(() => {
-                        // ðŸ”µ INDICADOR PADRÃƒO: Bolinha pequena seguindo padrÃ£o do sistema
-                        const hasUnreadMessages =
-                          (conversations.getUnreadCount(conversation.id) || 0) > 0;
 
-                        return hasUnreadMessages ? (
-                          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                        ) : null;
-                      })()}
+                          <p className="text-sm text-muted-foreground truncate">
+                            {getLastMessage(conversation)}
+                          </p>
+
+                          <ConversationBadges conversation={conversation} maxLabels={2} />
+
+                          {conversation?.assignee && (
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <div className="flex items-center space-x-1.5 px-2 py-1 rounded-md text-xs font-medium bg-primary/10 dark:bg-primary/20">
+                                <UserIcon className="h-3 w-3 flex-shrink-0 text-primary dark:text-primary" />
+                                <span
+                                  className="truncate max-w-32 text-primary dark:text-primary/90"
+                                  title={conversation.assignee?.name}
+                                >
+                                  {conversation.assignee?.name}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        {(() => {
+                          const hasUnreadMessages =
+                            (conversations.getUnreadCount(conversation.id) || 0) > 0;
+                          return hasUnreadMessages ? (
+                            <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                          ) : null;
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>,
@@ -890,7 +840,6 @@ const ChatSidebar = ({
         )}
       </div>
 
-      {/* Conversations Filter Modal */}
       <ConversationsFilter
         open={filterModalOpen}
         onOpenChange={setFilterModalOpen}
@@ -904,5 +853,3 @@ const ChatSidebar = ({
 };
 
 export default ChatSidebar;
-
-

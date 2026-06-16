@@ -8,7 +8,6 @@ import {
 } from '@evoapi/design-system';
 import { MenuItem as MenuItemType } from '../config/menuItems';
 
-// Utility function for className merging
 function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(' ');
 }
@@ -36,26 +35,32 @@ export default function MenuItem({
       to={hasSubItems && !mobile && item.href === '#' ? '#' : item.href}
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 px-3 py-2.5 rounded-md transition-all group',
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
         mobile ? 'w-full' : isCollapsed ? 'justify-center' : '',
         isActive
           ? mobile
             ? 'bg-primary text-primary-foreground'
             : isCollapsed
             ? 'bg-primary/20 text-primary'
-            : 'bg-primary/15 text-primary border-l-4 border-primary pl-2.5'
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+            : 'bg-primary text-primary-foreground shadow-[0_2px_12px_rgba(124,58,237,0.35)]'
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent/80',
       )}
     >
-      <item.icon className={cn('flex-shrink-0 h-5 w-5', isActive && 'text-primary')} />
+      <item.icon
+        className={cn(
+          'flex-shrink-0 h-4.5 w-4.5 transition-colors duration-200',
+          isActive && !mobile ? 'text-primary-foreground' : isActive ? 'text-primary-foreground' : 'group-hover:text-foreground',
+        )}
+        style={{ width: '1.125rem', height: '1.125rem' }}
+      />
       {(!isCollapsed || mobile) && (
         <>
           <div className="flex items-center gap-2 flex-1">
-            <span className="font-medium">{item.name}</span>
+            <span className="font-medium text-sm">{item.name}</span>
           </div>
           {hasSubItems && !mobile && (
             <div className="ml-auto">
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5 opacity-60" />
             </div>
           )}
         </>
