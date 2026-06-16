@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
   Button,
   Label,
@@ -155,7 +154,7 @@ export default function EditItemModal({
     setSelectedAssigneeId(userId === 'unassigned' ? null : userId);
     setAssigningUser(true);
     try {
-      await conversationAPI.assignConversation(item.conversation.id, userId === 'unassigned' ? null : Number(userId));
+      await conversationAPI.assignConversation(item.conversation.id, userId === 'unassigned' ? null : userId);
     } catch {
       // silent — best effort
     } finally {

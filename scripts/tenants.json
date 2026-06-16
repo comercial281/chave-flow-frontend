@@ -1,0 +1,114 @@
+{
+  "vercel": {
+    "orgId": "team_WnWMQRzy4D4c9w4kSUZGGreY",
+    "skipProjects": ["lealmidia-site", "lm-hub-main"],
+    "masterOnlyKeys": ["VERCEL_TOKEN"]
+  },
+  "railway": {
+    "apiUrl": "https://backboard.railway.app/graphql/v2",
+    "masterOnlyKeys": [
+      "RAILWAY_API_TOKEN",
+      "VERCEL_TOKEN",
+      "ENABLE_ACCOUNT_SIGNUP",
+      "BACKEND_URL",
+      "FRONTEND_URL",
+      "RAILS_SERVE_STATIC_FILES",
+      "RAILS_LOG_TO_STDOUT",
+      "TEST_VAR",
+      "DEPLOY_TRIGGER",
+      "RAILS_ENCRYPTION_PRIMARY_KEY",
+      "RAILS_ENCRYPTION_DETERMINISTIC_KEY",
+      "RAILS_ENCRYPTION_KEY_DERIVATION_SALT"
+    ],
+    "tenantOnlyKeys": [
+      "INITIAL_ADMIN_EMAIL",
+      "INITIAL_ADMIN_NAME",
+      "SUPER_ADMIN_NAME",
+      "EVOLUTION_INSTANCE",
+      "EVOLUTION_INBOX_NAME",
+      "EVOLUTION_PHONE_NUMBER"
+    ],
+    "autoKeys": [
+      "RAILWAY_PRIVATE_DOMAIN",
+      "RAILWAY_PROJECT_NAME",
+      "RAILWAY_ENVIRONMENT_NAME",
+      "RAILWAY_SERVICE_NAME",
+      "RAILWAY_PROJECT_ID",
+      "RAILWAY_ENVIRONMENT_ID",
+      "RAILWAY_SERVICE_ID",
+      "RAILWAY_STATIC_URL",
+      "RAILWAY_ENVIRONMENT",
+      "RAILWAY_SERVICE_API_URL",
+      "RAILWAY_PUBLIC_DOMAIN",
+      "RAILWAY_SERVICE_CHAVE_FLOW_API_URL",
+      "RAILWAY_VOLUME_ID",
+      "RAILWAY_VOLUME_MOUNT_PATH",
+      "RAILWAY_VOLUME_NAME"
+    ]
+  },
+  "smokeRoutes": [
+    "/api/v1/message_funnels",
+    "/api/v1/tenant_template_variables"
+  ],
+  "notify": {
+    "whatsappNumber": "5511949329570",
+    "evolutionUrl": "https://evolution-api-6o-4-production.up.railway.app",
+    "evolutionInstance": "Nova Instancia"
+  },
+  "raizKey": "principal",
+  "tenants": [
+    {
+      "key": "principal",
+      "label": "LM Flow Principal (Giovani)",
+      "frontend": {
+        "projectId": "prj_OKGhW2tea2sRdbclrFJTtDEy31yK",
+        "url": "https://lm-flow-frontend.vercel.app"
+      },
+      "backend": {
+        "serviceId": "4eda6c37-1e17-497b-8a7b-3138b6fd7feb",
+        "environmentId": "129d777e-64a1-4cb6-bca4-e2ce3281d528",
+        "url": "https://chave-flow-api-staging.up.railway.app",
+        "_note": "Env production do raiz tem postgres FAILED desde 20/05 (nunca subiu). O frontend lm-flow-frontend.vercel.app aponta pra staging (unica saudavel). Watchdog mede o que esta de fato no ar."
+      }
+    },
+    {
+      "key": "meu-imovel-imob",
+      "label": "Meu Imovel Imob (Marcio + Sara)",
+      "frontend": {
+        "projectId": "prj_3Oyyrc0MVod3Rxlj93egdnYQP9mW",
+        "url": "https://lm-flow-meu-imovel-imob.vercel.app"
+      },
+      "backend": {
+        "serviceId": "bb0b82f1-6cb0-44eb-a92c-f0569304546b",
+        "environmentId": "3e4fe7f3-c7f1-4ce6-abdf-2b8edb969ca0",
+        "url": "https://api-production-c0ba.up.railway.app"
+      }
+    },
+    {
+      "key": "renato-abdel",
+      "label": "Renato Abdel (142)",
+      "frontend": {
+        "projectId": "prj_5hYYMEIpusm1esdJWur0aRuGfXMv",
+        "url": "https://chave-flow-142-renato-abdel.vercel.app"
+      },
+      "backend": {
+        "serviceId": "09bbb3ad-c764-4c5b-a10f-c512bbfe1ce0",
+        "environmentId": "77da2b6d-59ff-4c9e-8cda-e67eb26bfedb",
+        "url": "https://api-production-e35e.up.railway.app"
+      }
+    },
+    {
+      "key": "mais-que-imoveis",
+      "label": "Mais Que Imoveis (Bruno Eduardo)",
+      "frontend": {
+        "projectId": "prj_0GzqUZMjIgz4UoI0vQF88aYhn76i",
+        "url": null
+      },
+      "backend": {
+        "serviceId": "25c472a2-a5ce-4f28-aa6c-19324b74a3f5",
+        "environmentId": "b7879b49-aaf7-49e9-bab5-2ab382be26b3",
+        "url": "https://api-production-a2e30.up.railway.app"
+      }
+    }
+  ]
+}
