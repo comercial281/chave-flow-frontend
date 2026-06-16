@@ -83,6 +83,7 @@ export const TRIGGER_LABELS: Record<string, string> = {
   'lead.tag_added':            'Etiqueta adicionada',
   'lead.message_received':     'Mensagem recebida do lead',
   'lead.keyword_detected':     'Palavra-chave detectada na mensagem',
+  'lead.recovered':            'Lead recuperado (respondeu durante follow-up)',
 };
 
 // Actions processadas pelo LeadAutomation::Executor.
