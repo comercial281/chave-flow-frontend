@@ -176,30 +176,47 @@ export default function PipelineKanban() {
 
     if (!draggedItem) return;
 
+    const fromStageId = draggedItem.stage_id;
+
     // Don't move if dropping on same stage
-    if (draggedItem.stage_id === targetStageId) {
+    if (fromStageId === targetStageId) {
       setDraggedItem(null);
+      isDraggingRef.current = false;
+      suppressClickUntilRef.current = Date.now() + 200;
       return;
     }
+
+    // Optimistic update: move the card locally and keep a snapshot to revert on error.
+    // Antes recarregava o board inteiro (loadPipelineData) — piscava a tela toda. Agora é instantâneo.
+    const movedItem = { ...draggedItem, stage_id: targetStageId, pipeline_stage_id: targetStageId };
+    const snapshot = stages;
+    setStages(prev =>
+      prev.map(s => {
+        if (s.id === fromStageId) {
+          return { ...s, items: (s.items || []).filter(i => i.id !== draggedItem.id) };
+        }
+        if (s.id === targetStageId) {
+          return { ...s, items: [movedItem, ...(s.items || [])] };
+        }
+        return s;
+      }),
+    );
+    setDraggedItem(null);
+    isDraggingRef.current = false;
+    suppressClickUntilRef.current = Date.now() + 200;
 
     try {
       await pipelinesService.moveItem({
         item_id: draggedItem.id,
         pipeline_id: pipelineId!,
-        from_stage_id: draggedItem.stage_id,
+        from_stage_id: fromStageId,
         to_stage_id: targetStageId,
       });
-
-      // Reload pipeline data to reflect changes
-      await loadPipelineData();
       toast.success(t('kanban.messages.itemMoved'));
     } catch (error) {
       console.error('Error moving item:', error);
       toast.error(t('kanban.messages.itemMoveError'));
-    } finally {
-      setDraggedItem(null);
-      isDraggingRef.current = false;
-      suppressClickUntilRef.current = Date.now() + 200;
+      setStages(snapshot); // revert
     }
   };
 
@@ -236,6 +253,41 @@ export default function PipelineKanban() {
     const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#F97316'];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
+  };
+
+  // Nome cru às vezes vem como o número de telefone (Evolution não manda pushName no 1º evento).
+  // Resolve pro melhor candidato disponível, descartando nomes que são só dígitos/telefone.
+  const isPhoneLikeName = (value?: string | null) => {
+    if (!value) return true;
+    return /^[+\d\s()\-@.]+$/.test(value.replace(/whatsapp|net|us|s\./gi, ''));
+  };
+  const resolveItemName = (item: PipelineItem): string => {
+    const candidates = [item.contact?.name, item.conversation?.contact?.name];
+    const good = candidates.find(c => c && !isPhoneLikeName(c));
+    if (good) return good as string;
+    // sem nome real: mostra o telefone formatado em vez de string crua tipo JID
+    const phone =
+      item.contact?.phone_number || item.conversation?.contact?.phone_number || candidates[0];
+    return phone || t('kanban.conversation.unknownUser');
+  };
+  const resolveItemAvatar = (item: PipelineItem): string | undefined => {
+    return item.contact?.avatar_url || item.conversation?.contact?.avatar_url || undefined;
+  };
+  // Data de chegada do lead no pipeline (quando o card entrou).
+  const formatArrivalDate = (item: PipelineItem): string | null => {
+    const raw = item.entered_at
+      ? item.entered_at * 1000
+      : item.created_at
+      ? typeof item.created_at === 'number'
+        ? item.created_at * 1000
+        : new Date(item.created_at).getTime()
+      : null;
+    if (!raw) return null;
+    return new Date(raw).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+    });
   };
 
   // Pipeline management handlers
@@ -851,28 +903,27 @@ export default function PipelineKanban() {
                           {/* Contact Info Header */}
                           <div className="flex items-start space-x-3 mb-3">
                             <div className="relative">
-                              {item.contact?.avatar_url ? (
+                              {resolveItemAvatar(item) ? (
                                 <img
-                                  src={item.contact.avatar_url}
-                                  alt={item.contact?.name || ''}
+                                  src={resolveItemAvatar(item)}
+                                  alt={resolveItemName(item)}
                                   className="w-10 h-10 rounded-full object-cover shadow-sm bg-muted"
                                   onError={e => {
-                                    // Fallback para inicial se a foto do WhatsApp falhar
-                                    const el = e.currentTarget;
-                                    const fallback = el.nextElementSibling as HTMLElement | null;
-                                    el.style.display = 'none';
-                                    if (fallback) fallback.style.display = 'flex';
+                                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    const fb = e.currentTarget
+                                      .nextElementSibling as HTMLElement | null;
+                                    if (fb) fb.style.display = 'flex';
                                   }}
                                 />
                               ) : null}
                               <div
                                 className="w-10 h-10 rounded-full items-center justify-center text-white text-sm font-bold shadow-sm"
                                 style={{
-                                  display: item.contact?.avatar_url ? 'none' : 'flex',
-                                  backgroundColor: getContactColor(item.contact?.name),
+                                  backgroundColor: getContactColor(resolveItemName(item)),
+                                  display: resolveItemAvatar(item) ? 'none' : 'flex',
                                 }}
                               >
-                                {item.contact?.name?.[0]?.toUpperCase() || 'U'}
+                                {resolveItemName(item)?.[0]?.toUpperCase() || 'U'}
                               </div>
                               {/* Online indicator */}
                               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-background rounded-full" />
@@ -880,7 +931,7 @@ export default function PipelineKanban() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center space-x-2 mb-1">
                                 <h4 className="text-sm font-semibold text-foreground truncate">
-                                  {item.contact?.name || t('kanban.conversation.unknownUser')}
+                                  {resolveItemName(item)}
                                 </h4>
                                 <span className="text-xs text-muted-foreground font-medium">
                                   #{item.conversation?.display_id}
@@ -1100,14 +1151,13 @@ export default function PipelineKanban() {
                                   />
                                 </svg>
                               </div>
-                              <span>
-                                {item.conversation?.last_activity_at
-                                  ? new Date(
-                                      item.conversation.last_activity_at * 1000,
-                                    ).toLocaleDateString('pt-BR')
-                                  : new Date((item.entered_at || 0) * 1000).toLocaleDateString(
-                                      'pt-BR',
-                                    )}
+                              <span title={t('kanban.item.arrivedAt', 'Lead chegou em')}>
+                                {formatArrivalDate(item) ||
+                                  (item.conversation?.last_activity_at
+                                    ? new Date(
+                                        item.conversation.last_activity_at * 1000,
+                                      ).toLocaleDateString('pt-BR')
+                                    : '')}
                               </span>
                             </div>
 

@@ -263,9 +263,19 @@ export default function EditItemModal({
 
   if (!item) return null;
 
+  // Nome cru às vezes vem como o telefone (Evolution não manda pushName no 1º evento).
+  // Descarta nomes que são só dígitos/telefone e cai no melhor candidato.
+  const isPhoneLikeName = (value?: string | null) => {
+    if (!value) return true;
+    return /^[+\d\s()\-@.]+$/.test(value.replace(/whatsapp|net|us|s\./gi, ''));
+  };
   const getItemDisplayName = () => {
-    if (item.type === 'contact' || !item.conversation) return item.contact?.name || t('editItem.unknownUser');
-    return item.conversation?.contact?.name || t('editItem.unknownUser');
+    const candidates = [item.contact?.name, (item.conversation as any)?.contact?.name];
+    const good = candidates.find(c => c && !isPhoneLikeName(c));
+    if (good) return good as string;
+    const phone =
+      item.contact?.phone_number || (item.conversation as any)?.contact?.phone_number;
+    return phone || candidates[0] || t('editItem.unknownUser');
   };
 
   const getItemDisplayId = () => {
@@ -552,7 +562,7 @@ export default function EditItemModal({
             {item && (
               <CardConversationTab
                 item={item}
-                onCreateReminder={() => { setActiveTab('tasks'); setShowCreateTaskModal(true); }}
+                onCreateReminder={() => { setShowCreateTaskModal(true); }}
               />
             )}
           </TabsContent>
