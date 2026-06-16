@@ -103,6 +103,7 @@ export default function EditItemModal({
   const [labelPopoverOpen, setLabelPopoverOpen] = useState(false);
   const [labelSearch, setLabelSearch] = useState('');
   const [savingLabel, setSavingLabel] = useState(false);
+  const [creatingLabel, setCreatingLabel] = useState(false);
 
   // History
   const [historyEvents, setHistoryEvents] = useState<ContactEvent[]>([]);
@@ -237,6 +238,29 @@ export default function EditItemModal({
     }
   }, [item, activeLabels]);
 
+  const createAndApplyLabel = useCallback(async (rawTitle: string) => {
+    const title = rawTitle.trim();
+    if (!title || !item?.conversation?.id) return;
+    setCreatingLabel(true);
+    try {
+      const created = await labelsService.createLabel({ title, color: '#7C3AED', show_on_sidebar: true });
+      // O backend normaliza o título (minúsculo). Usa o título canônico retornado
+      // pra a lista e a conversa baterem com o que ficou gravado.
+      const canonical = (created as any)?.title ?? title.toLowerCase();
+      setAvailableLabels(prev =>
+        prev.some(l => l.title === canonical) ? prev : [...prev, created as unknown as LabelType]
+      );
+      if (!activeLabels.includes(canonical)) {
+        await conversationAPI.addLabels(item.conversation.id, [canonical]);
+        setActiveLabels(prev => [...prev, canonical]);
+      }
+    } catch { /* silent */ } finally {
+      setCreatingLabel(false);
+      setLabelPopoverOpen(false);
+      setLabelSearch('');
+    }
+  }, [item, activeLabels]);
+
   const handleSubmit = () => {
     if (!selectedStageId) return;
     onSubmit({ notes, stage_id: selectedStageId, services, currency, custom_attributes: customAttributes });
@@ -306,6 +330,11 @@ export default function EditItemModal({
   const filteredLabels = availableLabels.filter(l =>
     l.title.toLowerCase().includes(labelSearch.toLowerCase())
   );
+  const trimmedLabelSearch = labelSearch.trim();
+  const exactLabelExists = availableLabels.some(
+    l => l.title.toLowerCase() === trimmedLabelSearch.toLowerCase()
+  );
+  const canCreateLabel = trimmedLabelSearch.length > 0 && !exactLabelExists;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -398,7 +427,7 @@ export default function EditItemModal({
                   <Label className="flex items-center gap-1 text-xs">
                     <Tag className="h-3.5 w-3.5" />
                     Tags
-                    {savingLabel && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {(savingLabel || creatingLabel) && <Loader2 className="h-3 w-3 animate-spin" />}
                   </Label>
                   <div className="flex flex-wrap gap-1 mb-1">
                     {activeLabels.map(l => (
@@ -430,6 +459,14 @@ export default function EditItemModal({
                                   {l.title}
                                 </CommandItem>
                               ))}
+                              {canCreateLabel && (
+                                <CommandItem value={trimmedLabelSearch} disabled={creatingLabel} onSelect={() => createAndApplyLabel(trimmedLabelSearch)}>
+                                  {creatingLabel
+                                    ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                                    : <Plus className="mr-2 h-3.5 w-3.5" />}
+                                  Criar tag "{trimmedLabelSearch}"
+                                </CommandItem>
+                              )}
                             </CommandGroup>
                           </CommandList>
                         </Command>
