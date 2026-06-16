@@ -312,6 +312,15 @@ export default function PipelineKanban() {
     return Math.floor((Date.now() - ms) / 86_400_000);
   };
 
+  // Labels da conversa (vêm como string[] ou {title}[]).
+  const itemLabels = (item: PipelineItem): string[] => {
+    const raw = (item.conversation as any)?.labels ?? [];
+    return Array.isArray(raw)
+      ? raw.map((l: any) => (typeof l === 'string' ? l : l?.title ?? '')).filter(Boolean)
+      : [];
+  };
+  const hasVisitScheduled = (item: PipelineItem) => itemLabels(item).includes('visita-agendada');
+
   // Pipeline management handlers
   const handleEditPipeline = () => {
     setShowEditPipelineModal(true);
@@ -977,6 +986,16 @@ export default function PipelineKanban() {
                                   </span>
                                 );
                               })()}
+                              {/* Visita agendada */}
+                              {hasVisitScheduled(item) && (
+                                <span
+                                  title="Visita agendada"
+                                  className="inline-flex items-center gap-1 mb-1 ml-1 px-1.5 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                >
+                                  <CalendarClock className="w-3 h-3" />
+                                  Visita agendada
+                                </span>
+                              )}
                               {/* Contact details */}
                               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                 {item.contact?.phone_number && (
