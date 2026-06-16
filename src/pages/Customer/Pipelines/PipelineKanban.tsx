@@ -290,6 +290,28 @@ export default function PipelineKanban() {
     });
   };
 
+  // Último contato com o lead medido pela CONVERSA da instância WhatsApp.
+  // last_non_activity_message = última mensagem real (entrada OU saída), incluindo
+  // mensagens que o corretor mandou pelo celular (persistidas via webhook Evolution).
+  // NÃO é baseado em envios internos do LM Flow — é o timestamp da própria conversa.
+  const lastContactMs = (item: PipelineItem): number | null => {
+    const msg = item.conversation?.last_non_activity_message;
+    if (msg?.created_at != null) {
+      return typeof msg.created_at === 'number'
+        ? msg.created_at * 1000
+        : new Date(msg.created_at).getTime();
+    }
+    if (item.conversation?.last_activity_at) {
+      return item.conversation.last_activity_at * 1000;
+    }
+    return null;
+  };
+  const lastContactDays = (item: PipelineItem): number | null => {
+    const ms = lastContactMs(item);
+    if (!ms) return null;
+    return Math.floor((Date.now() - ms) / 86_400_000);
+  };
+
   // Pipeline management handlers
   const handleEditPipeline = () => {
     setShowEditPipelineModal(true);
@@ -937,6 +959,24 @@ export default function PipelineKanban() {
                                   #{item.conversation?.display_id}
                                 </span>
                               </div>
+                              {/* Tempo sem contato (medido pela conversa da instância WhatsApp) */}
+                              {(() => {
+                                const d = lastContactDays(item);
+                                if (d == null || d < 3) return null;
+                                const tone =
+                                  d >= 7
+                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+                                return (
+                                  <span
+                                    title={`Última mensagem há ${d} dias`}
+                                    className={`inline-flex items-center gap-1 mb-1 px-1.5 py-0.5 rounded-md text-xs font-semibold ${tone}`}
+                                  >
+                                    <Clock className="w-3 h-3" />
+                                    {d}d sem contato
+                                  </span>
+                                );
+                              })()}
                               {/* Contact details */}
                               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                 {item.contact?.phone_number && (
