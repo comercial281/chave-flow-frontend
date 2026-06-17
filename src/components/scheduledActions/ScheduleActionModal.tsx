@@ -279,6 +279,8 @@ export function ScheduleActionModal({
         task_title: '',
         task_description: '',
         recurrence_type: 'once',
+        media_type: '',
+        media_url: '',
       });
       setErrors({});
     }
