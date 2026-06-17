@@ -1,8 +1,8 @@
 import React, { memo, useMemo } from 'react';
-import { PipelineItem } from '@/types/pipelines';
+import { PipelineItem } from '@/types/analytics';
 import { useLanguage } from '@/hooks/useLanguage';
 import { MoreVertical, Copy, Edit, Trash2, MessageCircle, CalendarClock, Phone, Mail, MessageSquare, Clock } from 'lucide-react';
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@aevoapi/design-system';
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@evoapi/design-system';
 import { toast } from 'sonner';
 
 interface PipelineItemCardProps {
