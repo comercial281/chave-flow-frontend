@@ -34,6 +34,7 @@ import {
   X,
   Download,
   Upload,
+  MessageCircle,
 } from 'lucide-react';
 
 import { pipelinesService } from '@/services/pipelines';
@@ -57,6 +58,7 @@ import DeleteStageModal from '@/components/pipelines/DeleteStageModal';
 import DeletePipelineModal from '@/components/pipelines/DeletePipelineModal';
 import ReorderStagesModal from '@/components/pipelines/ReorderStagesModal';
 import { ScheduleActionModal } from '@/components/scheduledActions';
+import { NotesHistoryModal } from '@/components/pipelines/NotesHistoryModal';
 
 export default function PipelineKanban() {
   const { t } = useLanguage('pipelines');
@@ -101,6 +103,13 @@ export default function PipelineKanban() {
   const scheduleActionContactId =
     selectedConversationForSchedule?.conversation?.contact?.id ??
     selectedConversationForSchedule?.contact?.id;
+
+  // Notes modal state
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [selectedContactForNotes, setSelectedContactForNotes] = useState<{
+    id: string;
+    name?: string;
+  } | null>(null);
 
   // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -963,6 +972,19 @@ export default function PipelineKanban() {
                                     <CalendarClock className="h-4 w-4 mr-2" />
                                     {t('kanban.item.scheduleAction')}
                                   </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const contactId = item.contact?.id ?? item.conversation?.contact?.id;
+                                      const contactName = item.contact?.name ?? item.conversation?.contact?.name;
+                                      if (contactId) {
+                                        setSelectedContactForNotes({ id: contactId, name: contactName });
+                                        setNotesModalOpen(true);
+                                      }
+                                    }}
+                                  >
+                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                    Ver Notas
+                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     className="text-destructive"
@@ -1432,6 +1454,19 @@ export default function PipelineKanban() {
             setSelectedConversationForSchedule(null);
           }}
           contactId={scheduleActionContactId}
+        />
+      )}
+
+      {/* Notes History Modal */}
+      {selectedContactForNotes && (
+        <NotesHistoryModal
+          isOpen={notesModalOpen}
+          contactId={selectedContactForNotes.id}
+          contactName={selectedContactForNotes.name}
+          onClose={() => {
+            setNotesModalOpen(false);
+            setSelectedContactForNotes(null);
+          }}
         />
       )}
     </div>
