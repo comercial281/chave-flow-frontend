@@ -1,5 +1,40 @@
 import apiClient from '@/services/core/api';
 
+export interface MonitoringWhatsapp {
+  inbox: string | null;
+  provider: string;
+  reauth_required: boolean;
+  connection: Record<string, unknown>;
+}
+
+export interface MonitoringTenant {
+  name: string;
+  master: boolean;
+  backend_url: string;
+  frontend_url: string | null;
+  frontend_status: number | null;
+  online: boolean;
+  api_up: boolean;
+  last_inbound_at: string | null;
+  minutes_since_last_inbound: number | null;
+  inbound_24h: number;
+  reauth_required: boolean;
+  whatsapp: MonitoringWhatsapp[];
+}
+
+export interface MonitoringData {
+  tenants: MonitoringTenant[];
+  generated_at: string;
+  overview: {
+    total: number;
+    online: number;
+    total_inbound_24h: number;
+    channels_total: number;
+    channels_off: number;
+    alerts: number;
+  };
+}
+
 export type InstanceStatus = 'pending' | 'provisioning_railway' | 'active' | 'error';
 
 export interface ClientInstanceSnapshot {
@@ -90,6 +125,9 @@ const clientInstancesService = {
 
   dashboard: () =>
     apiClient.get<{ success: boolean; data: DashboardData }>('/client_instances/dashboard'),
+
+  monitoring: () =>
+    apiClient.get<{ success: boolean; data: MonitoringData }>('/super/monitoring'),
 
   archive: (id: number) =>
     apiClient.post<{ success: boolean; data: ClientInstance }>(`/client_instances/${id}/archive`, {}),

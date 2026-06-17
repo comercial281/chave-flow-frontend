@@ -64,6 +64,7 @@ import { Visits } from '@/pages/Customer/Visits';
 import { Proposals } from '@/pages/Customer/Proposals';
 import { PropertyCaptureRequests } from '@/pages/Customer/PropertyCapture';
 import ClientInstances from '@/pages/SuperAdmin/ClientInstances';
+import Monitoring from '@/pages/SuperAdmin/Monitoring';
 import AutomationTemplatesPage from '@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates';
 import RoletaConfigPage from '@/pages/Customer/Settings/RoletaConfig/RoletaConfig';
 import { PropertyInterests } from '@/pages/Customer/PropertyInterests';
@@ -1559,6 +1560,18 @@ const AppRouter = () => {
               <PrivateRoute>
                 <MainLayout>
                   <ClientInstances />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Super Admin — monitoramento de saúde dos CRMs */}
+          <Route
+            path="/super-admin/monitoring"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Monitoring />
                 </MainLayout>
               </PrivateRoute>
             }

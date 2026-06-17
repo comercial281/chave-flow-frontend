@@ -1,5 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 import {
+  Activity,
   User,
   LogOut,
   Cog,
@@ -210,6 +211,13 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
     name: 'Clientes CRM',
     href: '/super-admin/clients',
     icon: Building2,
+    requiredEmail: 'comercial@lealmidia.com.br',
+    rootTenantOnly: true,
+  },
+  {
+    name: 'Monitoramento',
+    href: '/super-admin/monitoring',
+    icon: Activity,
     requiredEmail: 'comercial@lealmidia.com.br',
     rootTenantOnly: true,
   },
