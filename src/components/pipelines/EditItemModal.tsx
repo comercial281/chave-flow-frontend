@@ -10,7 +10,6 @@ import {
   DialogDescription,
   Button,
   Label,
-  Textarea,
   Select,
   SelectContent,
   SelectItem,
@@ -32,7 +31,7 @@ import {
   PopoverTrigger,
   Badge,
 } from '@evoapi/design-system';
-import { Plus, Trash2, ChevronsUpDown, Check, User, Phone, Mail, History, Loader2, Tag, Shuffle, X, RefreshCw, Home, Settings2, Link, MessageSquare, Megaphone } from 'lucide-react';
+import { Plus, Trash2, ChevronsUpDown, Check, User, Phone, Mail, History, Loader2, Tag, Shuffle, X, RefreshCw, Home, Settings2, Link, MessageSquare, Megaphone, MessageCircle } from 'lucide-react';
 import { PipelineItem, PipelineStage, Pipeline, PipelineTask, CreateTaskData, UpdateTaskData, PipelineServiceDefinition } from '@/types/analytics';
 import pipelineServiceDefinitionsService from '@/services/pipelines/pipelineServiceDefinitionsService';
 import PipelineItemCustomAttributes from './PipelineItemCustomAttributes';
@@ -41,7 +40,9 @@ import CreateTaskModal from './tasks/CreateTaskModal';
 import EditTaskModal from './tasks/EditTaskModal';
 import CardConversationTab from './CardConversationTab';
 import CardActionsPanel from './CardActionsPanel';
+import CardNotesTab from './CardNotesTab';
 import CardPropertyInterests from './CardPropertyInterests';
+import ContactAvatar from '@/components/chat/contact/ContactAvatar';
 import { conversationAPI } from '@/services/conversations/conversationService';
 import { contactEventsService } from '@/services/contacts/contactEventsService';
 import { labelsService } from '@/services/contacts/labelsService';
@@ -331,6 +332,23 @@ export default function EditItemModal({
     return item.id;
   };
 
+  // Contato unificado (card pode ter contact direto ou via conversa)
+  const contactObj = (item.contact || (item.conversation as any)?.contact) as any;
+  const avatarContact = contactObj
+    ? {
+        id: contactObj.id ? String(contactObj.id) : undefined,
+        name: getItemDisplayName(),
+        avatar_url: contactObj.avatar_url ?? null,
+        thumbnail: contactObj.thumbnail ?? null,
+      }
+    : null;
+
+  // Link direto pra conversa no WhatsApp (Web no desktop, app no celular)
+  const rawPhone: string =
+    item.contact?.phone_number || (item.conversation as any)?.contact?.phone_number || '';
+  const whatsappDigits = rawPhone.replace(/\D/g, '');
+  const whatsappUrl = whatsappDigits ? `https://wa.me/${whatsappDigits}` : null;
+
   const handleCreateTask = async (data: CreateTaskData) => {
     if (!tasksListRef.current) return;
     setTaskLoading(true);
@@ -365,15 +383,31 @@ export default function EditItemModal({
       <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="shrink-0 pb-2 border-b border-border flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <DialogTitle className="truncate text-base font-semibold">{getItemDisplayName()}</DialogTitle>
-            <DialogDescription className="text-xs">#{getItemDisplayId()}</DialogDescription>
+          <div className="min-w-0 flex items-center gap-3">
+            {avatarContact && (
+              <ContactAvatar contact={avatarContact} size="md" showColoredFallback className="shrink-0" />
+            )}
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-semibold">{getItemDisplayName()}</DialogTitle>
+              <DialogDescription className="text-xs">#{getItemDisplayId()}</DialogDescription>
+            </div>
           </div>
           <div className="flex items-center gap-1 shrink-0 mt-0.5">
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Abrir conversa no WhatsApp"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+              </a>
+            )}
             {item.conversation?.id && (
               <button
                 type="button"
-                title="Ir para conversa"
+                title="Ir para conversa no CRM"
                 className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 onClick={() => {
                   onOpenChange(false);
@@ -423,9 +457,9 @@ export default function EditItemModal({
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="actions" className="flex items-center gap-1">
-              <Settings2 className="h-3 w-3" />
-              Ações
+            <TabsTrigger value="notes" className="flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              Observações
             </TabsTrigger>
           </TabsList>
 
@@ -609,15 +643,17 @@ export default function EditItemModal({
                   </Select>
                 </div>
 
-                {/* Observações */}
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">{t('editItem.notes')}</Label>
-                  <Textarea
-                    placeholder={t('editItem.notesPlaceholder')}
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    rows={3}
-                    className="text-sm"
+                {/* Ações do lead (movido da antiga aba Ações) */}
+                <div className="grid gap-1.5 pt-1">
+                  <Label className="flex items-center gap-1 text-xs">
+                    <Settings2 className="h-3.5 w-3.5" />
+                    Ações
+                  </Label>
+                  <CardActionsPanel
+                    item={item}
+                    stages={stages}
+                    onClose={() => onOpenChange(false)}
+                    onStageChanged={(newStageId) => setSelectedStageId(newStageId)}
                   />
                 </div>
               </div>
@@ -746,14 +782,11 @@ export default function EditItemModal({
             })()}
           </TabsContent>
 
-          {/* Ações */}
-          <TabsContent value="actions" className="flex-1 overflow-y-auto mt-0 pt-3">
+          {/* Observações (comentários da equipe) */}
+          <TabsContent value="notes" className="flex-1 overflow-hidden mt-0 pt-3">
             {item && (
-              <CardActionsPanel
-                item={item}
-                stages={stages}
-                onClose={() => onOpenChange(false)}
-                onStageChanged={(newStageId) => setSelectedStageId(newStageId)}
+              <CardNotesTab
+                contactId={item.contact?.id ? String(item.contact.id) : ((item.conversation as any)?.contact?.id ? String((item.conversation as any).contact.id) : null)}
               />
             )}
           </TabsContent>
