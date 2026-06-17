@@ -157,7 +157,11 @@ interface DispatchHelpers {
 
 async function fetchAsFile(item: MessageFunnelItem): Promise<File> {
   if (!item.media_url) throw new Error(`Item ${item.position + 1} sem URL de mídia`);
-  const resp = await fetch(item.media_url, { credentials: 'include' });
+  // SEM credentials: a URL do blob ActiveStorage é assinada (pública). Com
+  // `credentials: 'include'` o browser bloqueia o fetch — a CORS do ActiveStorage
+  // responde Access-Control-Allow-Origin: * e wildcard + credentials = CORS error.
+  // Era essa a causa de "funil com imagem não envia" (texto vai, mídia falha).
+  const resp = await fetch(item.media_url);
   if (!resp.ok) throw new Error(`Falha ao baixar mídia (${resp.status})`);
   const blob = await resp.blob();
   const filename = item.media_filename
