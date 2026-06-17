@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@evoapi/design-system';
-import { Upload, FileText, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, Trash2, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { PipelineStage } from '@/types/analytics';
 import { ContactFormData } from '@/types/contacts';
@@ -311,6 +311,14 @@ export default function ImportLeadsModal({
             <p className="text-xs text-muted-foreground">
               A primeira linha do arquivo deve ser o cabeçalho (nomes das colunas). Aceita separador vírgula ou ponto e vírgula.
             </p>
+            <a
+              href="/downloads/import-leads-sample.csv"
+              download="modelo-leads.csv"
+              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Baixar planilha modelo
+            </a>
           </div>
         )}
 
