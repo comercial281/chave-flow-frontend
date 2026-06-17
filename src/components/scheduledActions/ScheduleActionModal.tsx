@@ -16,6 +16,7 @@ import {
   Textarea,
 } from '@evoapi/design-system';
 import { scheduledActionsService } from '@/services/scheduledActions/scheduledActionsService';
+import { followupSequencesService } from '@/services/followupSequences/followupSequencesService';
 import InboxesService from '@/services/channels/inboxesService';
 import { contactsService } from '@/services/contacts';
 import type { ScheduledAction, CreateScheduledAction } from '@/types/automation';
@@ -66,7 +67,10 @@ export function ScheduleActionModal({
     task_title: '',
     task_description: '',
     recurrence_type: 'once',
+    media_type: '',
+    media_url: '',
   });
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const channelOptions = useMemo<ChannelOption[]>(() => buildChannelOptions(availableInboxes, t), [availableInboxes, t]);
 
@@ -258,6 +262,8 @@ export function ScheduleActionModal({
         task_title: getStringValue(action.payload.task_title),
         task_description: getStringValue(action.payload.task_description),
         recurrence_type: action.recurrence_type || 'once',
+        media_type: getStringValue(action.payload.media_type),
+        media_url: getStringValue(action.payload.media_url),
       });
     } else if (!open) {
       // Reset form when modal closes
@@ -302,6 +308,9 @@ export function ScheduleActionModal({
           payload.payload = {
             channel: formData.channel,
             message: formData.message,
+            ...(formData.media_url
+              ? { media_url: formData.media_url, media_type: formData.media_type || 'image' }
+              : {}),
           };
           break;
         case 'execute_webhook':
@@ -553,6 +562,60 @@ export function ScheduleActionModal({
                   <code>{'{{telefone}}'}</code> <code>{'{{email}}'}</code> — substituídas pelos dados do contato no envio.
                 </p>
                 {errors.message && <p className="text-sm text-red-500">{errors.message}</p>}
+
+                {/* Mídia opcional (imagem/áudio/vídeo/documento) */}
+                <div className="flex items-center gap-2 pt-1">
+                  <select
+                    value={formData.media_type}
+                    onChange={e => setFormData({ ...formData, media_type: e.target.value })}
+                    className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                  >
+                    <option value="">Sem mídia</option>
+                    <option value="image">Imagem</option>
+                    <option value="audio">Áudio</option>
+                    <option value="video">Vídeo</option>
+                    <option value="document">Documento</option>
+                  </select>
+                  {formData.media_type && (
+                    <label className="cursor-pointer text-xs text-primary underline">
+                      {uploadingMedia
+                        ? 'Enviando...'
+                        : formData.media_url
+                        ? 'Trocar arquivo'
+                        : 'Anexar arquivo'}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept={
+                          formData.media_type === 'image'
+                            ? 'image/*'
+                            : formData.media_type === 'audio'
+                            ? 'audio/*'
+                            : formData.media_type === 'video'
+                            ? 'video/*'
+                            : '.pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf'
+                        }
+                        onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingMedia(true);
+                          try {
+                            const out = await followupSequencesService.uploadMedia(file);
+                            setFormData(prev => ({ ...prev, media_url: out.url }));
+                          } catch {
+                            /* erro de upload tratado pelo toast do serviço */
+                          } finally {
+                            setUploadingMedia(false);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                  {formData.media_url && (
+                    <span className="text-xs text-emerald-600">anexado ✓</span>
+                  )}
+                </div>
               </div>
             </>
           )}
