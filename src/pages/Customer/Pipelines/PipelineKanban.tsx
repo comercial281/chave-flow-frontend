@@ -14,6 +14,8 @@ import {
 } from '@evoapi/design-system';
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Plus,
   MoreVertical,
   GripVertical,
@@ -73,6 +75,24 @@ export default function PipelineKanban() {
   const [draggedItem, setDraggedItem] = useState<PipelineItem | null>(null);
   const isDraggingRef = useRef(false);
   const suppressClickUntilRef = useRef(0);
+
+  // Navegação horizontal do board (setas) — o scroll nativo existe mas é pouco
+  // descobrível no desktop (barrinha escondida, mouse sem scroll lateral).
+  const boardScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const updateScrollButtons = useCallback(() => {
+    const el = boardScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 8);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }, []);
+  const scrollBoard = (dir: 'left' | 'right') => {
+    const el = boardScrollRef.current;
+    if (!el) return;
+    // ~uma coluna (320px) + gap
+    el.scrollBy({ left: dir === 'left' ? -344 : 344, behavior: 'smooth' });
+  };
 
   // Modal states
   const [showEditPipelineModal, setShowEditPipelineModal] = useState(false);
@@ -623,6 +643,19 @@ export default function PipelineKanban() {
     }));
   }, [stages, searchQuery, dateFrom, dateTo]);
 
+  // Recalcula as setas de navegação quando o board muda de tamanho/conteúdo.
+  useEffect(() => {
+    updateScrollButtons();
+    const el = boardScrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
+    window.addEventListener('resize', updateScrollButtons);
+    return () => {
+      el.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, [updateScrollButtons, filteredStages, loading]);
+
   // Export leads as CSV
   const handleExportCSV = () => {
     const allItems = stages.flatMap(stage =>
@@ -850,8 +883,32 @@ export default function PipelineKanban() {
         </div>
 
         {/* Kanban Board */}
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-x-auto overflow-y-hidden px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex-1 overflow-hidden relative">
+          {/* Setas de navegação horizontal — só aparecem quando há coluna escondida */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scrollBoard('left')}
+              aria-label="Ver etapas anteriores"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center text-foreground hover:bg-muted hover:border-primary/40 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scrollBoard('right')}
+              aria-label="Ver próximas etapas"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center text-foreground hover:bg-muted hover:border-primary/40 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+          <div
+            ref={boardScrollRef}
+            className="h-full overflow-x-auto overflow-y-hidden px-4 sm:px-6 lg:px-8 py-6"
+          >
             {/* Kanban Content */}
             <div
               className="flex gap-6 h-full pb-6"
