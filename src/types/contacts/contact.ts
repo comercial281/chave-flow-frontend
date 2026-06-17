@@ -265,6 +265,7 @@ export interface ContactUpdateData {
   removeAvatar?: boolean;
   labels?: string[];
   company_ids?: string[];
+  default_assignee_id?: string | null;
 }
 
 export interface ContactsResponse extends PaginatedResponse<Contact> {}
