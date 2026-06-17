@@ -12,8 +12,15 @@ import {
   Label as UILabel,
   Textarea,
   Badge,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from '@evoapi/design-system';
-import { Plus, Edit, Trash2, Zap, ChevronDown, ChevronUp, ToggleLeft, ToggleRight } from 'lucide-react';
+import {
+  Plus, Edit, Trash2, Zap, ChevronDown, ChevronUp, ToggleLeft, ToggleRight,
+  Archive, ArchiveRestore, BookOpen, Lock,
+} from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 import {
   leadAutomationService,
@@ -33,6 +40,9 @@ import {
   formatConditionSummary,
   formatActionSummary,
 } from './LeadAutomationsEditors';
+import AutomationLibraryModal from './AutomationLibraryModal';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 
 const TRIGGERS = Object.entries(TRIGGER_LABELS).map(([value, label]) => ({ value, label }));
 const ACTION_TYPES = Object.entries(ACTION_TYPE_LABELS).map(([value, label]) => ({ value, label }));
@@ -48,13 +58,22 @@ const EMPTY_FORM: LeadAutomationRuleFormData = {
   pipeline_id: null,
 };
 
+type Tab = 'active' | 'archived';
+
 export default function LeadAutomations() {
+  const isSuperAdmin = useIsSuperAdmin();
+  const { features } = useTenantFeatures();
+  // Super-admin (Leal Mídia) sempre tem acesso; cliente só com o toggle ligado.
+  const canAccess = isSuperAdmin || features?.['client_manage_automations'] === true;
+
+  const [tab, setTab] = useState<Tab>('active');
   const [rules, setRules] = useState<LeadAutomationRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [editing, setEditing] = useState<LeadAutomationRule | null>(null);
   const [form, setForm] = useState<LeadAutomationRuleFormData>(EMPTY_FORM);
 
@@ -62,12 +81,12 @@ export default function LeadAutomations() {
   const [toDelete, setToDelete] = useState<LeadAutomationRule | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const resources = useAutomationResources(true);
+  const resources = useAutomationResources(canAccess);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (which: Tab) => {
     setLoading(true);
     try {
-      setRules(await leadAutomationService.getAll());
+      setRules(await leadAutomationService.getAll(which === 'archived'));
     } catch {
       toast.error('Erro ao carregar automações');
     } finally {
@@ -75,7 +94,21 @@ export default function LeadAutomations() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (canAccess) load(tab); }, [load, tab, canAccess]);
+
+  if (!canAccess) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="flex flex-col items-center justify-center text-center py-24 text-muted-foreground">
+          <Lock className="h-10 w-10 mb-3 opacity-40" />
+          <h2 className="text-lg font-semibold text-foreground">Automações gerenciadas pela Leal Mídia</h2>
+          <p className="text-sm mt-1 max-w-md">
+            As automações deste CRM são configuradas pela sua agência. Fale com a Leal Mídia para liberar a gestão por aqui.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const openCreate = () => {
     setEditing(null);
@@ -137,6 +170,26 @@ export default function LeadAutomations() {
     }
   };
 
+  const handleArchive = async (rule: LeadAutomationRule) => {
+    try {
+      await leadAutomationService.archive(rule.id);
+      setRules(prev => prev.filter(r => r.id !== rule.id));
+      toast.success('Automação arquivada');
+    } catch {
+      toast.error('Erro ao arquivar');
+    }
+  };
+
+  const handleUnarchive = async (rule: LeadAutomationRule) => {
+    try {
+      await leadAutomationService.unarchive(rule.id);
+      setRules(prev => prev.filter(r => r.id !== rule.id));
+      toast.success('Automação restaurada');
+    } catch {
+      toast.error('Erro ao restaurar');
+    }
+  };
+
   const handleDelete = async () => {
     if (!toDelete) return;
     setDeleting(true);
@@ -156,7 +209,6 @@ export default function LeadAutomations() {
     setForm(f => ({
       ...f,
       trigger,
-      // limpa condição quando troca de gatilho — campos são incompatíveis entre triggers.
       conditions: triggerNeedsCondition(trigger) ? f.conditions : [],
     }));
 
@@ -184,6 +236,8 @@ export default function LeadAutomations() {
       actions: f.actions.map((a, idx) => idx === i ? next : a),
     }));
 
+  const archivedTab = tab === 'archived';
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -197,21 +251,57 @@ export default function LeadAutomations() {
             Regras automáticas disparadas por eventos imobiliários
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova regra
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar nova regra
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLibraryOpen(true)}>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Adicionar da biblioteca
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Tabs Ativas / Arquivadas */}
+      <div className="flex gap-1 mb-4 border-b border-border">
+        {([['active', 'Ativas'], ['archived', 'Arquivadas']] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => { setTab(key); setExpandedId(null); }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* List */}
       {loading ? (
         <div className="text-center py-16 text-muted-foreground text-sm">Carregando...</div>
       ) : rules.length === 0 ? (
-        <EmptyState
-          title="Nenhuma automação criada"
-          description="Crie regras para automatizar ações quando leads interagem com o sistema"
-          action={{ label: 'Criar automação', onClick: openCreate }}
-        />
+        archivedTab ? (
+          <div className="text-center py-16 text-sm text-muted-foreground">Nenhuma automação arquivada.</div>
+        ) : (
+          <EmptyState
+            title="Nenhuma automação criada"
+            description="Crie do zero ou adicione um modelo pronto da biblioteca"
+            action={{ label: 'Criar automação', onClick: openCreate }}
+          />
+        )
       ) : (
         <div className="space-y-3">
           {rules.map(rule => (
@@ -220,15 +310,17 @@ export default function LeadAutomations() {
               className="border border-border rounded-xl bg-card overflow-hidden"
             >
               <div className="flex items-center gap-4 px-5 py-4">
-                <button
-                  onClick={() => handleToggle(rule)}
-                  className="flex-shrink-0"
-                  title={rule.is_active ? 'Desativar' : 'Ativar'}
-                >
-                  {rule.is_active
-                    ? <ToggleRight className="h-6 w-6 text-primary" />
-                    : <ToggleLeft className="h-6 w-6 text-muted-foreground" />}
-                </button>
+                {!archivedTab && (
+                  <button
+                    onClick={() => handleToggle(rule)}
+                    className="flex-shrink-0"
+                    title={rule.is_active ? 'Desativar' : 'Ativar'}
+                  >
+                    {rule.is_active
+                      ? <ToggleRight className="h-6 w-6 text-primary" />
+                      : <ToggleLeft className="h-6 w-6 text-muted-foreground" />}
+                  </button>
+                )}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -236,7 +328,7 @@ export default function LeadAutomations() {
                     <Badge variant="secondary" className="text-xs">
                       {TRIGGER_LABELS[rule.trigger] ?? rule.trigger}
                     </Badge>
-                    {!rule.is_active && (
+                    {!archivedTab && !rule.is_active && (
                       <Badge variant="outline" className="text-xs text-muted-foreground">
                         Inativa
                       </Badge>
@@ -261,13 +353,37 @@ export default function LeadAutomations() {
                       ? <ChevronUp className="h-4 w-4" />
                       : <ChevronDown className="h-4 w-4" />}
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(rule)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
+
+                  {archivedTab ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Restaurar"
+                      onClick={() => handleUnarchive(rule)}
+                    >
+                      <ArchiveRestore className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(rule)} title="Editar">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Arquivar"
+                        onClick={() => handleArchive(rule)}
+                      >
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+
                   <Button
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
+                    title="Remover"
                     onClick={() => { setToDelete(rule); setDeleteDialogOpen(true); }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -301,6 +417,13 @@ export default function LeadAutomations() {
           ))}
         </div>
       )}
+
+      {/* Biblioteca */}
+      <AutomationLibraryModal
+        open={libraryOpen}
+        onClose={() => { setLibraryOpen(false); if (tab === 'active') load('active'); }}
+        onApplied={() => { if (tab === 'active') load('active'); }}
+      />
 
       {/* Create / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

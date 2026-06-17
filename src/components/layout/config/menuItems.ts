@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react';
+import { SUPER_ADMIN_EMAIL } from '@/hooks/useIsSuperAdmin';
 import {
   Activity,
   User,
@@ -54,6 +55,12 @@ export interface MenuItem {
    * Ausência da key OU features sem essa key => item visível (ON por padrão).
    */
   featureKey?: string;
+  /**
+   * Gate de acesso do CLIENTE a uma feature gerenciada pela Leal Mídia.
+   * Quando definida: super-admin (Leal Mídia) SEMPRE vê; o cliente só vê se
+   * features[clientToggleKey] === true (default OFF — diferente do featureKey).
+   */
+  clientToggleKey?: string;
   /** Quando true, só aparece no tenant raiz (VITE_IS_ROOT_TENANT=true). */
   rootTenantOnly?: boolean;
 }
@@ -69,6 +76,7 @@ export interface SubMenuItem {
   requiredRoleKey?: string;
   requiredEmail?: string | string[];
   featureKey?: string;
+  clientToggleKey?: string;
   rootTenantOnly?: boolean;
 }
 
@@ -308,6 +316,7 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
         href: '/settings/lead-automations',
         icon: Zap,
         featureKey: 'lead_automations',
+        clientToggleKey: 'client_manage_automations',
       },
       {
         name: 'Follow-ups',
@@ -412,6 +421,14 @@ export const shouldShowMenuItem = (
   // master = desaparece independente de permissão).
   if (item.featureKey && features && features[item.featureKey] === false) {
     return false;
+  }
+
+  // Gate de acesso do cliente a feature gerenciada pela Leal Mídia.
+  // Super-admin (Leal Mídia) SEMPRE vê; o cliente só vê se o toggle estiver
+  // explicitamente ligado no painel de Funções do CRM (default OFF).
+  if (item.clientToggleKey) {
+    const isSuper = !!userEmail && userEmail.toLowerCase().trim() === SUPER_ADMIN_EMAIL.toLowerCase();
+    if (!isSuper && features?.[item.clientToggleKey] !== true) return false;
   }
 
   // Gate por tenant raiz (apenas no deploy principal, não em tenants de clientes)

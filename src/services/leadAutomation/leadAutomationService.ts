@@ -19,6 +19,8 @@ export interface LeadAutomationRule {
   conditions: LeadAutomationCondition[];
   actions: LeadAutomationAction[];
   is_active: boolean;
+  archived?: boolean;
+  archived_at?: string | null;
   priority: number;
   pipeline_id?: string | null;
   created_by?: { id: string; name: string } | null;
@@ -40,8 +42,8 @@ export interface LeadAutomationRuleFormData {
 const BASE = '/lead_automation_rules';
 
 export const leadAutomationService = {
-  async getAll(): Promise<LeadAutomationRule[]> {
-    const res = await api.get(BASE);
+  async getAll(archived = false): Promise<LeadAutomationRule[]> {
+    const res = await api.get(BASE, { params: archived ? { archived: 'true' } : {} });
     return (res.data as { data: LeadAutomationRule[] }).data ?? [];
   },
 
@@ -61,6 +63,16 @@ export const leadAutomationService = {
 
   async toggle(id: string): Promise<LeadAutomationRule> {
     const res = await api.post(`${BASE}/${id}/toggle`);
+    return (res.data as { data: LeadAutomationRule }).data;
+  },
+
+  async archive(id: string): Promise<LeadAutomationRule> {
+    const res = await api.post(`${BASE}/${id}/archive`);
+    return (res.data as { data: LeadAutomationRule }).data;
+  },
+
+  async unarchive(id: string): Promise<LeadAutomationRule> {
+    const res = await api.post(`${BASE}/${id}/unarchive`);
     return (res.data as { data: LeadAutomationRule }).data;
   },
 };
