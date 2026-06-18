@@ -1454,6 +1454,26 @@ export default function PipelineKanban() {
                             </div>
                           </div>
 
+                          {/* Etiquetas/Tags do contato (ex: tráfego pago) */}
+                          {Array.isArray((item.contact as any)?.labels) && (item.contact as any).labels.length > 0 && (
+                            <div className="mb-3 flex flex-wrap gap-1">
+                              {(item.contact as any).labels.map((label: any, idx: number) => {
+                                const color = label?.color || '#7c3aed';
+                                const name = label?.name || label?.title;
+                                if (!name) return null;
+                                return (
+                                  <span
+                                    key={`${name}-${idx}`}
+                                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                                    style={{ backgroundColor: `${color}22`, color }}
+                                  >
+                                    {name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+
                           {/* Last Message Preview */}
                           {item.conversation?.last_non_activity_message?.content && (
                             <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border">
