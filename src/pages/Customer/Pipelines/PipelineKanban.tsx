@@ -233,10 +233,13 @@ export default function PipelineKanban() {
   const canBulkDispatch = useFeature('bulk_campaigns');
 
   // Load pipeline data
-  const loadPipelineData = useCallback(async () => {
+  // silent=true: atualiza em segundo plano sem o spinner de tela cheia (usado
+  // pelo refresh automático ao voltar pra aba e no poll), pra lead novo aparecer
+  // sozinho sem o usuário recarregar a página.
+  const loadPipelineData = useCallback(async (silent = false) => {
     if (!pipelineId) return;
 
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       // Load pipeline with all data (stages, items, tasks_info, services_info)
       const pipelineData = await pipelinesService.getPipeline(pipelineId);
@@ -245,9 +248,9 @@ export default function PipelineKanban() {
       setStages(pipelineData.stages || []);
     } catch (error) {
       console.error('Error loading pipeline data:', error);
-      toast.error(t('kanban.messages.loadDataError'));
+      if (!silent) toast.error(t('kanban.messages.loadDataError'));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [pipelineId]);
 
@@ -287,6 +290,30 @@ export default function PipelineKanban() {
     loadAllPipelines();
     loadUpcomingVisits();
   }, [loadPipelineData, loadAllPipelines, loadUpcomingVisits]);
+
+  // Atualização automática (sem recarregar a página): lead novo aparece sozinho.
+  // - ao voltar o foco pra aba / aba ficar visível: refresh silencioso na hora.
+  // - a cada 60s enquanto a aba está visível: refresh silencioso.
+  // Pula enquanto arrasta um card (não atrapalhar a reordenação otimista).
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (isDraggingRef.current) return;
+      loadPipelineData(true);
+      loadUpcomingVisits();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisibility);
+    const interval = window.setInterval(refresh, 60_000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearInterval(interval);
+    };
+  }, [loadPipelineData, loadUpcomingVisits]);
 
   // Auto-open card from ?card= URL param
   useEffect(() => {
