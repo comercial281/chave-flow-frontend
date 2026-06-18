@@ -21,6 +21,7 @@ import type {
 
 // Triggers cujo context emitido tem campos filtraveis (LeadFollowupListener etc).
 const TRIGGERS_WITH_CONDITION = new Set([
+  'lead.created',
   'lead.tag_added',
   'lead.message_received',
   'lead.stage_changed',
@@ -133,6 +134,34 @@ const baseSelectClass =
 
 export function ConditionEditor({ trigger, condition, onChange, resources }: ConditionEditorProps) {
   if (!triggerNeedsCondition(trigger)) return null;
+
+  // --- lead.created ---
+  // Origem do lead (opcional). Backend resolve 'source' do ad_referral no Executor:
+  // formulario (Meta Lead Ads) | lead_whats_meta (CTWA) | organico.
+  if (trigger === 'lead.created') {
+    const value = typeof condition?.value === 'string' ? condition.value : '';
+    return (
+      <div>
+        <UILabel>Origem do lead (opcional)</UILabel>
+        <select
+          value={value}
+          onChange={e =>
+            onChange(e.target.value ? { field: 'source', operator: 'eq', value: e.target.value } : null)
+          }
+          className={baseSelectClass}
+        >
+          <option value="">Qualquer origem</option>
+          <option value="formulario">Formulário (Meta Lead Ads)</option>
+          <option value="lead_whats_meta">Lead Whats Meta (anúncio no WhatsApp)</option>
+          <option value="organico">Orgânico (sem anúncio)</option>
+        </select>
+        <p className="text-xs text-muted-foreground mt-1">
+          Em branco = qualquer lead novo. <strong>Formulário</strong>: veio de um formulário de anúncio.{' '}
+          <strong>Lead Whats Meta</strong>: clicou no anúncio e caiu direto no WhatsApp.
+        </p>
+      </div>
+    );
+  }
 
   // --- lead.tag_added ---
   // Backend emite context { contact_id, conversation_id, label: <nome da tag> }
@@ -576,8 +605,9 @@ export function validateRule(
   actions: LeadAutomationAction[],
 ): ValidationResult {
   if (triggerNeedsCondition(trigger)) {
-    // message_received é o único onde a condição é opcional (keyword vazia = qualquer msg).
-    const isOptional = trigger === 'lead.message_received';
+    // Condição opcional: message_received (keyword vazia = qualquer msg) e
+    // lead.created (origem vazia = qualquer lead novo).
+    const isOptional = trigger === 'lead.message_received' || trigger === 'lead.created';
     const hasValue =
       conditions.length > 0 &&
       conditions[0].value !== '' &&
@@ -615,6 +645,14 @@ export function formatConditionSummary(
   condition: LeadAutomationCondition,
   resources: AutomationResources,
 ): string {
+  if (trigger === 'lead.created') {
+    const labels: Record<string, string> = {
+      formulario: 'Formulário (Meta Lead Ads)',
+      lead_whats_meta: 'Lead Whats Meta (anúncio no WhatsApp)',
+      organico: 'Orgânico (sem anúncio)',
+    };
+    return `Origem: ${labels[String(condition.value)] ?? condition.value}`;
+  }
   if (trigger === 'lead.tag_added') {
     return `Etiqueta: ${condition.value}`;
   }
