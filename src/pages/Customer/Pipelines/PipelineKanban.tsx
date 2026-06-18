@@ -37,6 +37,7 @@ import {
   Download,
   Upload,
   MessageCircle,
+  Megaphone,
 } from 'lucide-react';
 
 import { pipelinesService } from '@/services/pipelines';
@@ -53,6 +54,7 @@ import EditPipelineModal from '@/components/pipelines/EditPipelineModal';
 import CreateStageModal from '@/components/pipelines/CreateStageModal';
 import AddItemModal from '@/components/pipelines/AddItemModal';
 import ImportLeadsModal from '@/components/pipelines/ImportLeadsModal';
+import BulkDispatchModal from '@/components/pipelines/BulkDispatchModal';
 import RemoveItemModal from '@/components/pipelines/RemoveItemModal';
 import EditItemModal from '@/components/pipelines/EditItemModal';
 import EditStageModal from '@/components/pipelines/EditStageModal';
@@ -183,6 +185,7 @@ export default function PipelineKanban() {
   const [dateTo, setDateTo] = useState('');
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [disparoModalOpen, setDisparoModalOpen] = useState(false);
 
   // Load pipeline data
   const loadPipelineData = useCallback(async () => {
@@ -824,6 +827,16 @@ export default function PipelineKanban() {
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Exportar
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDisparoModalOpen(true)}
+                  className="whitespace-nowrap"
+                >
+                  <Megaphone className="w-4 h-4 mr-2" />
+                  Disparo em massa
                 </Button>
 
                 <Button
@@ -1500,6 +1513,17 @@ export default function PipelineKanban() {
           pipelineName={pipeline.name}
           stages={stages}
           onImported={loadPipelineData}
+        />
+      )}
+
+      {/* Disparo em Massa Modal */}
+      {pipeline && (
+        <BulkDispatchModal
+          open={disparoModalOpen}
+          onOpenChange={setDisparoModalOpen}
+          pipelineId={pipeline.id}
+          pipelineName={pipeline.name}
+          stages={stages}
         />
       )}
 
