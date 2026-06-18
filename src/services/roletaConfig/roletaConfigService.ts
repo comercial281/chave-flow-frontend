@@ -14,6 +14,7 @@ export interface RoletaMember {
 export interface RoletaConfig {
   id: string;
   inbox_id: string;
+  inbox_name?: string | null;
   is_active: boolean;
   timeout_minutes: number;
   gestor_whatsapp_number: string;
@@ -76,6 +77,15 @@ export const roletaConfigService = {
 
   async destroy(id: string): Promise<void> {
     await api.delete(`${BASE}/${id}`);
+  },
+
+  // Atribui um lead manualmente via uma roleta (sorteio ponderado + notifica).
+  async assign(
+    id: string,
+    payload: { contact_id: string; conversation_id?: string; pipeline_item_id?: string },
+  ): Promise<BrokerAssignment> {
+    const res = await api.post(`${BASE}/${id}/assign`, payload);
+    return (res.data as { data: BrokerAssignment }).data;
   },
 
   async getAssignments(status?: string): Promise<BrokerAssignment[]> {

@@ -48,6 +48,8 @@ import { conversationAPI } from '@/services/conversations/conversationService';
 import { contactEventsService } from '@/services/contacts/contactEventsService';
 import { labelsService } from '@/services/contacts/labelsService';
 import { contactsService } from '@/services/contacts/contactsService';
+import { roletaConfigService, type RoletaConfig } from '@/services/roletaConfig/roletaConfigService';
+import { toast } from 'sonner';
 import type { ContactEvent } from '@/types/notifications/contact-events';
 import type { Label as LabelType } from '@/types/settings';
 
@@ -106,8 +108,10 @@ export default function EditItemModal({
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [assigningUser, setAssigningUser] = useState(false);
 
-  // Roleta (round-robin index display — read only, informativo)
-  const [rouletteUser, setRouletteUser] = useState<string | null>(null);
+  // Roleta de atendimento — roletas REAIS cadastradas (por inbox), não mais
+  // o round-robin fake. Escolher uma atribui o lead via sorteio ponderado.
+  const [roletas, setRoletas] = useState<RoletaConfig[]>([]);
+  const [assigningRoleta, setAssigningRoleta] = useState(false);
 
   // Tags/labels
   const [availableLabels, setAvailableLabels] = useState<LabelType[]>([]);
@@ -160,11 +164,10 @@ export default function EditItemModal({
       const currentAssigneeId = item.conversation?.assignee?.id;
       setSelectedAssigneeId(currentAssigneeId ? String(currentAssigneeId) : null);
 
-      // Roleta: mostra o próximo usuário na fila (round-robin simples baseado em id)
-      if (users.length > 0) {
-        const idx = (Number(item.id) || 0) % users.length;
-        setRouletteUser(String(users[idx]?.id ?? ''));
-      }
+      // Roletas reais cadastradas (só as ativas) pra escolher no select.
+      roletaConfigService.getAll()
+        .then(list => { if (!cancelled) setRoletas((list || []).filter(r => r.is_active)); })
+        .catch(() => { if (!cancelled) setRoletas([]); });
 
       // Labels ativas: da conversa (lead de WhatsApp) ou, na ausência de conversa
       // (lead de cadastro/formulário Meta), do contato — senão a tag do contato
@@ -234,6 +237,25 @@ export default function EditItemModal({
       await conversationAPI.assignConversation(item.conversation.id, userId === 'unassigned' ? null : userId);
     } catch { /* silent */ } finally {
       setAssigningUser(false);
+    }
+  }, [item]);
+
+  // Atribui o lead via uma roleta real (sorteio ponderado + notifica o corretor).
+  const handleAssignViaRoleta = useCallback(async (roletaId: string) => {
+    const contactId = item?.contact?.id ?? (item?.conversation as any)?.contact?.id;
+    if (!contactId) { toast.error('Lead sem contato'); return; }
+    setAssigningRoleta(true);
+    try {
+      const a = await roletaConfigService.assign(roletaId, {
+        contact_id: String(contactId),
+        conversation_id: item?.conversation?.id ? String(item.conversation.id) : undefined,
+        pipeline_item_id: item?.id ? String(item.id) : undefined,
+      });
+      toast.success(`Atribuído pela roleta: ${a?.assigned_user?.name ?? 'corretor'}`);
+    } catch {
+      toast.error('Erro ao atribuir pela roleta (sem membros ativos?)');
+    } finally {
+      setAssigningRoleta(false);
     }
   }, [item]);
 
@@ -624,25 +646,36 @@ export default function EditItemModal({
                   </div>
                 )}
 
-                {/* Roleta */}
-                {users.length > 0 && (
-                  <div className="grid gap-1.5">
-                    <Label className="flex items-center gap-1 text-xs">
-                      <Shuffle className="h-3.5 w-3.5" />
-                      Roleta de atendimento
-                    </Label>
-                    <Select value={rouletteUser ?? ''} onValueChange={setRouletteUser}>
+                {/* Roleta de atendimento — roletas REAIS cadastradas (por canal).
+                    Sem nenhuma: atalho pra criar. Escolher uma atribui o lead. */}
+                <div className="grid gap-1.5">
+                  <Label className="flex items-center gap-1 text-xs">
+                    <Shuffle className="h-3.5 w-3.5" />
+                    Roleta de atendimento
+                    {assigningRoleta && <Loader2 className="h-3 w-3 animate-spin" />}
+                  </Label>
+                  {roletas.length === 0 ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-sm justify-start"
+                      onClick={() => { onOpenChange(false); navigate('/settings/roleta-config'); }}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Criar roleta
+                    </Button>
+                  ) : (
+                    <Select value="" onValueChange={handleAssignViaRoleta} disabled={assigningRoleta}>
                       <SelectTrigger className="h-8 text-sm">
-                        <SelectValue placeholder="Selecionar da roleta" />
+                        <SelectValue placeholder="Atribuir por uma roleta" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map(u => (
-                          <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>
+                        {roletas.map(r => (
+                          <SelectItem key={r.id} value={r.id}>{r.inbox_name || 'Roleta'}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Fase */}
                 <div className="grid gap-1.5">
