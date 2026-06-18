@@ -97,6 +97,49 @@ export default function PipelineKanban() {
     el.scrollLeft += dir === 'left' ? -344 : 344;
   };
 
+  // Auto-scroll enquanto arrasta um card: chegar perto da borda do board rola
+  // na horizontal (pra alcançar coluna escondida); perto do topo/fundo de uma
+  // coluna rola a lista de cards dela. Usa setInterval (não rAF) pra rodar
+  // independente de a aba estar visível ou não. dragPointer guarda a última
+  // posição do cursor capturada no onDragOver.
+  const dragPointerRef = useRef({ x: 0, y: 0, active: false });
+  const autoScrollRef = useRef<number | null>(null);
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRef.current != null) {
+      clearInterval(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
+    dragPointerRef.current = { x: 0, y: 0, active: false };
+  }, []);
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollRef.current != null) return;
+    const EDGE = 90; // zona de borda (px) que ativa o scroll
+    const SPEED = 14; // px por tick
+    autoScrollRef.current = window.setInterval(() => {
+      const board = boardScrollRef.current;
+      const p = dragPointerRef.current;
+      if (!board || !p.active) return;
+      const r = board.getBoundingClientRect();
+      // horizontal
+      if (p.x < r.left + EDGE) board.scrollLeft -= SPEED;
+      else if (p.x > r.right - EDGE) board.scrollLeft += SPEED;
+      // vertical: a lista de cards da coluna sob o cursor
+      const col = (document.elementFromPoint(p.x, p.y) as HTMLElement | null)?.closest(
+        '[data-col-scroll]',
+      ) as HTMLElement | null;
+      if (col) {
+        const cr = col.getBoundingClientRect();
+        if (p.y < cr.top + EDGE) col.scrollTop -= SPEED;
+        else if (p.y > cr.bottom - EDGE) col.scrollTop += SPEED;
+      }
+    }, 16);
+  }, []);
+  // Captura a posição do cursor durante o arraste (dragover do board inteiro).
+  const handleBoardDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragPointerRef.current = { x: e.clientX, y: e.clientY, active: true };
+  };
+
   // Modal states
   const [showEditPipelineModal, setShowEditPipelineModal] = useState(false);
   const [isUpdatingPipeline, setIsUpdatingPipeline] = useState(false);
@@ -221,6 +264,7 @@ export default function PipelineKanban() {
     setDraggedItem(item);
     isDraggingRef.current = true;
     suppressClickUntilRef.current = Date.now() + 200;
+    startAutoScroll();
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -239,6 +283,7 @@ export default function PipelineKanban() {
       setDraggedItem(null);
       isDraggingRef.current = false;
       suppressClickUntilRef.current = Date.now() + 200;
+      stopAutoScroll();
       return;
     }
 
@@ -280,12 +325,14 @@ export default function PipelineKanban() {
       setDraggedItem(null);
       isDraggingRef.current = false;
       suppressClickUntilRef.current = Date.now() + 200;
+      stopAutoScroll();
     }
   };
 
   const handleDragEnd = () => {
     isDraggingRef.current = false;
     suppressClickUntilRef.current = Date.now() + 200;
+    stopAutoScroll();
   };
 
   // Calculate stage total value
@@ -659,6 +706,9 @@ export default function PipelineKanban() {
     };
   }, [updateScrollButtons, filteredStages, loading]);
 
+  // Garante que o auto-scroll do drag pare se o componente desmontar no meio.
+  useEffect(() => stopAutoScroll, [stopAutoScroll]);
+
   // Export leads as CSV
   const handleExportCSV = () => {
     const allItems = stages.flatMap(stage =>
@@ -911,6 +961,7 @@ export default function PipelineKanban() {
           <div
             ref={boardScrollRef}
             className="h-full overflow-x-auto overflow-y-hidden px-4 sm:px-6 lg:px-8 py-6"
+            onDragOver={handleBoardDragOver}
           >
             {/* Kanban Content */}
             <div
@@ -982,6 +1033,7 @@ export default function PipelineKanban() {
 
                     {/* Items Drop Zone */}
                     <div
+                      data-col-scroll
                       className="flex-1 overflow-y-auto p-4 space-y-3"
                       onDragOver={handleDragOver}
                       onDrop={e => handleDrop(e, stage.id)}
