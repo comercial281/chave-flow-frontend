@@ -93,6 +93,7 @@ export const TRIGGER_LABELS: Record<string, string> = {
   'lead.property_matched':     'Imóvel compatível encontrado',
   'lead.tag_added':            'Etiqueta adicionada',
   'lead.message_received':     'Mensagem recebida do lead',
+  'lead.campaign_received':    'Veio da campanha de WhatsApp',
 };
 
 // Actions processadas pelo LeadAutomation::Executor.
