@@ -35,6 +35,36 @@ import type { Pipeline, PipelineStage } from '@/types/analytics';
 // shape em JS pra que os 2 selects gerem um slug compativel ao salvar.
 const slugifyStageName = (name: string): string => name.toLowerCase().replace(/ /g, '-');
 
+// Variáveis interpoladas pelo backend (Followup::SendStep#interpolate) — mesmos
+// tokens da automação de lead.
+const MESSAGE_VARS: { label: string; token: string }[] = [
+  { label: 'Nome',          token: '{{nome}}' },
+  { label: 'Nome completo', token: '{{nome_completo}}' },
+  { label: 'Telefone',      token: '{{telefone}}' },
+  { label: 'E-mail',        token: '{{email}}' },
+  { label: 'Data',          token: '{{data}}' },
+  { label: 'Hora',          token: '{{hora}}' },
+  { label: 'Link do card',  token: '{{link_do_card}}' },
+];
+
+function VariableChips({ onInsert }: { onInsert: (token: string) => void }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1.5">
+      <span className="text-xs text-muted-foreground mr-1">Inserir variável:</span>
+      {MESSAGE_VARS.map(v => (
+        <button
+          key={v.token}
+          type="button"
+          onClick={() => onInsert(v.token)}
+          className="text-xs px-2 py-0.5 rounded-full border border-input bg-muted/40 hover:bg-muted transition-colors"
+        >
+          {v.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function StageSelector({
   currentSlug,
   pipelines,
@@ -380,7 +410,7 @@ export default function FollowupSequences() {
           <DialogHeader>
             <DialogTitle>Editar sequência: {editing?.name}</DialogTitle>
             <DialogDescription>
-              Tempos são cumulativos desde o início. Use {`{{nome}}`} pra inserir o primeiro nome do lead.
+              Tempos são cumulativos desde o início. Toque nas variáveis abaixo de cada mensagem pra inserir dados do lead.
             </DialogDescription>
           </DialogHeader>
 
@@ -416,6 +446,9 @@ export default function FollowupSequences() {
                           value={s.delay_minutes}
                           onChange={e => updateStep(idx, { delay_minutes: Number(e.target.value) || 0 })}
                         />
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          ≈ {formatDelay(s.delay_minutes)} após o início
+                        </p>
                       </div>
                       <div>
                         <UILabel className="text-xs">Tipo</UILabel>
@@ -435,12 +468,14 @@ export default function FollowupSequences() {
                     </div>
 
                     <div className="mt-2">
-                      <UILabel className="text-xs">Mensagem ({`{{nome}}`} é interpolado)</UILabel>
+                      <UILabel className="text-xs">Mensagem</UILabel>
                       <Textarea
                         rows={2}
                         value={s.content ?? ''}
                         onChange={e => updateStep(idx, { content: e.target.value })}
+                        placeholder="Olá {{nome}}, tudo bem?"
                       />
+                      <VariableChips onInsert={tok => updateStep(idx, { content: `${s.content ?? ''}${tok}` })} />
                     </div>
 
                     {s.message_type !== 'text' && (
@@ -463,6 +498,7 @@ export default function FollowupSequences() {
                         <div>
                           <UILabel className="text-xs">Legenda (opcional)</UILabel>
                           <Input value={s.media_caption ?? ''} onChange={e => updateStep(idx, { media_caption: e.target.value })} />
+                          <VariableChips onInsert={tok => updateStep(idx, { media_caption: `${s.media_caption ?? ''}${tok}` })} />
                         </div>
                       </div>
                     )}
