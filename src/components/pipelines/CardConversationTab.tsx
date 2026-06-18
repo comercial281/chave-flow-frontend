@@ -311,8 +311,8 @@ export default function CardConversationTab({ item, onCreateReminder }: CardConv
         </div>
       )}
 
-      {/* input area */}
-      <div className="mt-2 flex gap-2">
+      {/* input area (relative: ancora o popover de funil logo acima, dentro da tela) */}
+      <div className="relative mt-2 flex gap-2">
         <div className="flex flex-1 flex-col gap-1 rounded-lg border bg-background px-2 pb-1 pt-1">
           {/* toolbar */}
           <div className="flex gap-0.5">
@@ -367,6 +367,14 @@ export default function CardConversationTab({ item, onCreateReminder }: CardConv
         >
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
+
+        {/* Popover do funil: ancorado no input (relative acima), abre dentro da tela */}
+        <MessageFunnelPopover
+          isOpen={funnelOpen}
+          onClose={() => setFunnelOpen(false)}
+          conversation={convForFunnel}
+          onSendMessage={handleSendMessage}
+        />
       </div>
 
       <p className="mt-1 text-[10px] text-muted-foreground">
@@ -380,13 +388,6 @@ export default function CardConversationTab({ item, onCreateReminder }: CardConv
         multiple
         accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx"
         onChange={onFileChange}
-      />
-
-      <MessageFunnelPopover
-        isOpen={funnelOpen}
-        onClose={() => setFunnelOpen(false)}
-        conversation={convForFunnel}
-        onSendMessage={handleSendMessage}
       />
     </div>
   );
