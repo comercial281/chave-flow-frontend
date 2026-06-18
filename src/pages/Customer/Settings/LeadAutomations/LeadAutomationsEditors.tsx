@@ -589,6 +589,14 @@ export function ActionEditor({ action, onChange, resources }: ActionEditorProps)
               className="mt-1"
             />
           </Field>
+          <Field label="Instância (opcional)" hint="Deixe vazio pra usar a instância do cliente. Use o nome de uma instância específica (ex: Operacional (LM01)) quando o grupo é atendido por ela.">
+            <Input
+              value={String(params.instance ?? '')}
+              onChange={e => setParam('instance', e.target.value)}
+              placeholder="Operacional (LM01)"
+              className="mt-1"
+            />
+          </Field>
           <Field label="Mensagem *">
             <Textarea
               value={String(params.message ?? '')}
