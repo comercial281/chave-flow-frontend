@@ -454,7 +454,7 @@ export default function EditItemModal({
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
           <TabsList className={`grid w-full ${tabsGridClass} shrink-0`}>
             <TabsTrigger value="overview">Detalhes</TabsTrigger>
             <TabsTrigger value="conversation">Conversa</TabsTrigger>
@@ -487,10 +487,10 @@ export default function EditItemModal({
           </TabsList>
 
           {/* Overview: split left=form right=history */}
-          <TabsContent value="overview" className="flex-1 overflow-hidden mt-0 pt-3">
-            <div className="grid grid-cols-2 gap-4 h-full overflow-hidden">
+          <TabsContent value="overview" className="flex-1 overflow-hidden mt-0 pt-3 min-h-0 flex flex-col">
+            <div className="grid grid-cols-2 gap-4 flex-1 overflow-hidden min-h-0">
               {/* LEFT: details form */}
-              <div className="space-y-4 overflow-y-auto pr-2">
+              <div className="space-y-4 overflow-y-auto pr-2 min-h-0">
                 {/* Contact info (read-only) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -682,7 +682,7 @@ export default function EditItemModal({
               </div>
 
               {/* RIGHT: history */}
-              <div className="flex flex-col overflow-hidden border-l border-border pl-4">
+              <div className="flex flex-col overflow-hidden border-l border-border pl-4 min-h-0">
                 <div className="flex items-center justify-between mb-3 shrink-0">
                   <h4 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground uppercase tracking-wide">
                     <History className="h-3.5 w-3.5" />
