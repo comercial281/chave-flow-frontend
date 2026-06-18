@@ -36,6 +36,7 @@ import {
   Upload,
   MessageCircle,
   Megaphone,
+  Archive,
 } from 'lucide-react';
 
 import { pipelinesService } from '@/services/pipelines';
@@ -62,6 +63,7 @@ import DeletePipelineModal from '@/components/pipelines/DeletePipelineModal';
 import ReorderStagesModal from '@/components/pipelines/ReorderStagesModal';
 import { ScheduleActionModal } from '@/components/scheduledActions';
 import { NotesHistoryModal } from '@/components/pipelines/NotesHistoryModal';
+import ArchivedLeadsModal from '@/components/pipelines/ArchivedLeadsModal';
 
 export default function PipelineKanban() {
   const { t } = useLanguage('pipelines');
@@ -225,6 +227,7 @@ export default function PipelineKanban() {
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [disparoModalOpen, setDisparoModalOpen] = useState(false);
+  const [archivedModalOpen, setArchivedModalOpen] = useState(false);
 
   // Feature flags por cliente (super-admin liga/desliga no painel Clientes CRM).
   const canImport = useFeature('pipeline_import');
@@ -704,6 +707,29 @@ export default function PipelineKanban() {
     setShowRemoveItemModal(true);
   };
 
+  // Remove o card do board no estado (otimista), sem reload — usado ao arquivar.
+  const removeItemFromBoardLocal = useCallback((itemId: string) => {
+    setStages(prev =>
+      prev.map(stage => ({
+        ...stage,
+        items: (stage.items || []).filter(i => String(i.id) !== String(itemId)),
+      })),
+    );
+  }, []);
+
+  // Arquivar = soft-hide: some do board na hora, fica em "Arquivados".
+  const handleArchiveItem = useCallback(async (item: PipelineItem) => {
+    if (!pipelineId) return;
+    removeItemFromBoardLocal(item.id);
+    try {
+      await pipelinesService.archiveItem(pipelineId, item.id);
+      toast.success('Lead arquivado');
+    } catch {
+      toast.error('Erro ao arquivar');
+      loadPipelineData(true);
+    }
+  }, [pipelineId, removeItemFromBoardLocal, loadPipelineData]);
+
   const handleConfirmRemoveItem = async () => {
     if (!itemToRemove || !pipelineId) return;
 
@@ -1062,6 +1088,10 @@ export default function PipelineKanban() {
                       <ArrowUpDown className="h-4 w-4 mr-2" />
                       {t('kanban.header.reorderStages')}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setArchivedModalOpen(true)}>
+                      <Archive className="h-4 w-4 mr-2" />
+                      Leads arquivados
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive" onClick={handleDeletePipeline}>
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -1286,6 +1316,10 @@ export default function PipelineKanban() {
                                   >
                                     <MessageCircle className="h-4 w-4 mr-2" />
                                     Ver Notas
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleArchiveItem(item)}>
+                                    <Archive className="h-4 w-4 mr-2" />
+                                    Arquivar
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -1694,6 +1728,16 @@ export default function PipelineKanban() {
           pipelineId={pipeline.id}
           pipelineName={pipeline.name}
           stages={stages}
+        />
+      )}
+
+      {/* Leads Arquivados Modal */}
+      {pipeline && (
+        <ArchivedLeadsModal
+          open={archivedModalOpen}
+          onClose={() => setArchivedModalOpen(false)}
+          pipelineId={pipeline.id}
+          onUnarchived={() => loadPipelineData(true)}
         />
       )}
 

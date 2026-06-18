@@ -151,7 +151,7 @@ class PipelinesService {
   // Get items in a pipeline
   async getPipelineItems(
     pipelineId: string,
-    params?: { page?: number; per_page?: number; stage_id?: string },
+    params?: { page?: number; per_page?: number; stage_id?: string; archived?: string },
   ): Promise<ItemsResponse> {
     const response = await api.get(`/pipelines/${pipelineId}/pipeline_items`, {
       params,
@@ -245,6 +245,17 @@ class PipelinesService {
   ): Promise<{ success: boolean; message: string }> {
     const response = await api.delete(`/pipelines/${pipelineId}/pipeline_items/${itemId}`);
     return extractData<{ success: boolean; message: string }>(response);
+  }
+
+  // Arquivar / desarquivar lead (soft-hide: some do board, fica em Arquivados)
+  async archiveItem(pipelineId: string, itemId: string): Promise<PipelineItem> {
+    const response = await api.patch(`/pipelines/${pipelineId}/pipeline_items/${itemId}/archive`);
+    return extractData<PipelineItem>(response);
+  }
+
+  async unarchiveItem(pipelineId: string, itemId: string): Promise<PipelineItem> {
+    const response = await api.patch(`/pipelines/${pipelineId}/pipeline_items/${itemId}/unarchive`);
+    return extractData<PipelineItem>(response);
   }
 
   // Get pipeline statistics
