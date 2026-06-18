@@ -142,6 +142,7 @@ export interface PipelinesListParams {
   q?: string;
   is_active?: boolean;
   pipeline_type?: string;
+  include_items?: boolean; // false = modo enxuto (sem itens), pro seletor
 }
 
 export interface CreatePipelineData {

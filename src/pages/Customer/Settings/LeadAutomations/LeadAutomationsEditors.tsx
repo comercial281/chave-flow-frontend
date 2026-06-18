@@ -10,9 +10,11 @@ import type { Label as ContactLabel } from '@/types/settings/labels';
 import type { Pipeline, PipelineStage } from '@/types/analytics/pipelines';
 import type { User } from '@/types/users';
 import type { QuickReply } from '@/types/knowledge';
-import type {
-  LeadAutomationCondition,
-  LeadAutomationAction,
+import {
+  leadAutomationService,
+  type LeadAutomationCondition,
+  type LeadAutomationAction,
+  type AdOrigin,
 } from '@/services/leadAutomation/leadAutomationService';
 
 // ============================================================================
@@ -22,6 +24,7 @@ import type {
 // Triggers cujo context emitido tem campos filtraveis (LeadFollowupListener etc).
 const TRIGGERS_WITH_CONDITION = new Set([
   'lead.created',
+  'lead.campaign_received',
   'lead.tag_added',
   'lead.message_received',
   'lead.stage_changed',
@@ -61,6 +64,7 @@ export interface AutomationResources {
   pipelines: Pipeline[];
   stagesByPipeline: Record<string, PipelineStage[]>;
   quickReplies: QuickReply[];
+  adOrigins: AdOrigin[];
   loading: boolean;
 }
 
@@ -71,6 +75,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [stagesByPipeline, setStagesByPipeline] = useState<Record<string, PipelineStage[]>>({});
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
+  const [adOrigins, setAdOrigins] = useState<AdOrigin[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -79,12 +84,13 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
     setLoading(true);
 
     (async () => {
-      const [labelsRes, seqRes, usersRes, pipelinesRes, qrRes] = await Promise.allSettled([
+      const [labelsRes, seqRes, usersRes, pipelinesRes, qrRes, adRes] = await Promise.allSettled([
         labelsService.getLabels(),
         followupSequencesService.getAll(),
         usersService.getUsers(),
         pipelinesService.getPipelines(),
         quickRepliesService.getQuickReplies(),
+        leadAutomationService.getAdOrigins(),
       ]);
 
       if (cancelled) return;
@@ -93,6 +99,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
       if (seqRes.status === 'fulfilled') setSequences(seqRes.value ?? []);
       if (usersRes.status === 'fulfilled') setUsers(usersRes.value.data ?? []);
       if (qrRes.status === 'fulfilled') setQuickReplies(qrRes.value.data ?? []);
+      if (adRes.status === 'fulfilled') setAdOrigins(adRes.value ?? []);
 
       if (pipelinesRes.status === 'fulfilled') {
         const list = pipelinesRes.value.data ?? [];
@@ -115,7 +122,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
     return () => { cancelled = true; };
   }, [enabled]);
 
-  return { labels, sequences, users, pipelines, stagesByPipeline, quickReplies, loading };
+  return { labels, sequences, users, pipelines, stagesByPipeline, quickReplies, adOrigins, loading };
 }
 
 // ============================================================================

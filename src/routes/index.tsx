@@ -26,71 +26,71 @@ import AtlassianCallback from '@/pages/AtlassianCallback';
 import MicrosoftCallback from '@/pages/MicrosoftCallback';
 import SurveyResponse from '@/pages/Public/Survey/SurveyResponse';
 
-// Páginas customer
-import Dashboard from '@/pages/Customer/Dashboard';
-import Agents from '@/pages/Customer/Agents';
-import AgentEditPage from '@/pages/Customer/Agents/Agent/AgentEditPage';
-import MCPServers from '@/pages/Customer/Agents/MCPServers';
-import CustomMCPServers from '@/pages/Customer/Agents/CustomMCPServers';
-import Tools from '@/pages/Customer/Agents/Tools';
-import CustomTools from '@/pages/Customer/Agents/CustomTools';
-import Contacts from '@/pages/Customer/Contacts';
-import ScheduledActions from '@/pages/Customer/Contacts/ScheduledActions';
-import { Channels, ChannelSettings, NewChannel } from '@/pages/Customer/Channels';
+// Páginas customer — lazy (code-splitting): cada página vira um chunk próprio,
+// baixado só quando a rota é acessada. Reduz o bundle inicial (era ~7MB num arquivo).
+const Dashboard = React.lazy(() => import('@/pages/Customer/Dashboard'));
+const Agents = React.lazy(() => import('@/pages/Customer/Agents'));
+const AgentEditPage = React.lazy(() => import('@/pages/Customer/Agents/Agent/AgentEditPage'));
+const MCPServers = React.lazy(() => import('@/pages/Customer/Agents/MCPServers'));
+const CustomMCPServers = React.lazy(() => import('@/pages/Customer/Agents/CustomMCPServers'));
+const Tools = React.lazy(() => import('@/pages/Customer/Agents/Tools'));
+const CustomTools = React.lazy(() => import('@/pages/Customer/Agents/CustomTools'));
+const Contacts = React.lazy(() => import('@/pages/Customer/Contacts'));
+const ScheduledActions = React.lazy(() => import('@/pages/Customer/Contacts/ScheduledActions'));
+const Channels = React.lazy(() => import('@/pages/Customer/Channels').then(m => ({ default: m.Channels })));
+const ChannelSettings = React.lazy(() => import('@/pages/Customer/Channels').then(m => ({ default: m.ChannelSettings })));
+const NewChannel = React.lazy(() => import('@/pages/Customer/Channels').then(m => ({ default: m.NewChannel })));
 const ChatPage = React.lazy(() => import('@/pages/Customer/Chat/ChatPage'));
 
-// import Automation from '../pages/Customer/Automation';
-// import AutomationFlowEditor from '../pages/Customer/Automation/AutomationFlowEditor';
-import Pipelines from '@/pages/Customer/Pipelines/Pipelines';
-import PipelineKanban from '@/pages/Customer/Pipelines/PipelineKanban';
-import { AccountSettings } from '@/pages/Customer/Settings/Account';
-import Teams from '@/pages/Customer/Settings/Teams/Teams';
-import { AddUsers } from '@/pages/Customer/Settings/Teams';
-import Users from '@/pages/Customer/Settings/Users';
-import RolesPage from '@/pages/Customer/Settings/Roles';
-import Labels from '@/pages/Customer/Settings/Labels';
-import CustomAttributes from '@/pages/Customer/Settings/CustomAttributes';
-// CannedResponses + QuickReplies foram aposentadas — substituídas por MessageFunnels.
-// As páginas antigas continuam no disco mas suas rotas redirecionam pro novo módulo.
-import { MessageFunnels } from '@/pages/Customer/Settings/MessageFunnels';
-import { TemplateVariables } from '@/pages/Customer/Settings/TemplateVariables';
-import { WelcomeAutomations } from '@/pages/Customer/Settings/WelcomeAutomations';
-import { LeadAutomations } from '@/pages/Customer/Settings/LeadAutomations';
-import LeadAdsForms from '@/pages/Customer/Settings/LeadAdsForms';
-import { FollowupSequences } from '@/pages/Customer/Settings/FollowupSequences';
-import { SiteBuilder } from '@/pages/Customer/Settings/SiteBuilder';
-import { DynamicForms } from '@/pages/Customer/Settings/DynamicForms';
-import { Properties, PropertiesMap } from '@/pages/Customer/Properties';
-import { Visits } from '@/pages/Customer/Visits';
-import { Proposals } from '@/pages/Customer/Proposals';
-import { PropertyCaptureRequests } from '@/pages/Customer/PropertyCapture';
-import ClientInstances from '@/pages/SuperAdmin/ClientInstances';
-import Monitoring from '@/pages/SuperAdmin/Monitoring';
-import AutomationTemplatesPage from '@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates';
-import RoletaConfigPage from '@/pages/Customer/Settings/RoletaConfig/RoletaConfig';
-import { PropertyInterests } from '@/pages/Customer/PropertyInterests';
-import { Macros } from '@/pages/Customer/Settings/Macros';
-import WhatsappReminders from '@/pages/Customer/Settings/WhatsappReminders';
-import { Products } from '@/pages/Customer/Settings/Products';
-import { Integrations } from '@/pages/Customer/Settings/Integrations';
-import EmailTemplateEditor from '@/pages/Customer/Settings/EmailTemplateEditor';
-import WebhooksPage from '../pages/Customer/Settings/Integrations/WebhooksPage';
-import OAuthAppsPage from '../pages/Customer/Settings/Integrations/OAuthAppsPage';
-import DashboardAppsPage from '../pages/Customer/Settings/Integrations/DashboardAppsPage';
-import AccessTokens from '../pages/Customer/Settings/AccessTokens/AccessTokens';
-import SlackIntegrationPage from '../pages/Customer/Settings/Integrations/SlackIntegrationPage';
-import OpenAIPage from '../pages/Customer/Settings/Integrations/OpenAIPage';
-import BMSPage from '../pages/Customer/Settings/Integrations/BMSPage';
-import LeadSquaredPage from '../pages/Customer/Settings/Integrations/LeadSquaredPage';
-import HubSpotPage from '../pages/Customer/Settings/Integrations/HubSpotPage';
-import ShopifyPage from '../pages/Customer/Settings/Integrations/ShopifyPage';
-import LinearPage from '../pages/Customer/Settings/Integrations/LinearPage';
-import DashboardAppPage from '../pages/Customer/DashboardApp';
-import MetaAdsPage from '../pages/Customer/Settings/Integrations/RealEstate/MetaAdsPage';
-import RdStationPage from '../pages/Customer/Settings/Integrations/RealEstate/RdStationPage';
-import Studio360Page from '../pages/Customer/Settings/Integrations/RealEstate/Studio360Page';
-import LeadloversPage from '../pages/Customer/Settings/Integrations/RealEstate/LeadloversPage';
-import OruloPage from '../pages/Customer/Settings/Integrations/RealEstate/OruloPage';
+const Pipelines = React.lazy(() => import('@/pages/Customer/Pipelines/Pipelines'));
+const PipelineKanban = React.lazy(() => import('@/pages/Customer/Pipelines/PipelineKanban'));
+const AccountSettings = React.lazy(() => import('@/pages/Customer/Settings/Account').then(m => ({ default: m.AccountSettings })));
+const Teams = React.lazy(() => import('@/pages/Customer/Settings/Teams/Teams'));
+const AddUsers = React.lazy(() => import('@/pages/Customer/Settings/Teams').then(m => ({ default: m.AddUsers })));
+const Users = React.lazy(() => import('@/pages/Customer/Settings/Users'));
+const RolesPage = React.lazy(() => import('@/pages/Customer/Settings/Roles'));
+const Labels = React.lazy(() => import('@/pages/Customer/Settings/Labels'));
+const CustomAttributes = React.lazy(() => import('@/pages/Customer/Settings/CustomAttributes'));
+const MessageFunnels = React.lazy(() => import('@/pages/Customer/Settings/MessageFunnels').then(m => ({ default: m.MessageFunnels })));
+const TemplateVariables = React.lazy(() => import('@/pages/Customer/Settings/TemplateVariables').then(m => ({ default: m.TemplateVariables })));
+const WelcomeAutomations = React.lazy(() => import('@/pages/Customer/Settings/WelcomeAutomations').then(m => ({ default: m.WelcomeAutomations })));
+const LeadAutomations = React.lazy(() => import('@/pages/Customer/Settings/LeadAutomations').then(m => ({ default: m.LeadAutomations })));
+const LeadAdsForms = React.lazy(() => import('@/pages/Customer/Settings/LeadAdsForms'));
+const FollowupSequences = React.lazy(() => import('@/pages/Customer/Settings/FollowupSequences').then(m => ({ default: m.FollowupSequences })));
+const SiteBuilder = React.lazy(() => import('@/pages/Customer/Settings/SiteBuilder').then(m => ({ default: m.SiteBuilder })));
+const DynamicForms = React.lazy(() => import('@/pages/Customer/Settings/DynamicForms').then(m => ({ default: m.DynamicForms })));
+const Properties = React.lazy(() => import('@/pages/Customer/Properties').then(m => ({ default: m.Properties })));
+const PropertiesMap = React.lazy(() => import('@/pages/Customer/Properties').then(m => ({ default: m.PropertiesMap })));
+const Visits = React.lazy(() => import('@/pages/Customer/Visits').then(m => ({ default: m.Visits })));
+const Proposals = React.lazy(() => import('@/pages/Customer/Proposals').then(m => ({ default: m.Proposals })));
+const PropertyCaptureRequests = React.lazy(() => import('@/pages/Customer/PropertyCapture').then(m => ({ default: m.PropertyCaptureRequests })));
+const ClientInstances = React.lazy(() => import('@/pages/SuperAdmin/ClientInstances'));
+const Monitoring = React.lazy(() => import('@/pages/SuperAdmin/Monitoring'));
+const AutomationTemplatesPage = React.lazy(() => import('@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates'));
+const RoletaConfigPage = React.lazy(() => import('@/pages/Customer/Settings/RoletaConfig/RoletaConfig'));
+const PropertyInterests = React.lazy(() => import('@/pages/Customer/PropertyInterests').then(m => ({ default: m.PropertyInterests })));
+const Macros = React.lazy(() => import('@/pages/Customer/Settings/Macros').then(m => ({ default: m.Macros })));
+const WhatsappReminders = React.lazy(() => import('@/pages/Customer/Settings/WhatsappReminders'));
+const Products = React.lazy(() => import('@/pages/Customer/Settings/Products').then(m => ({ default: m.Products })));
+const Integrations = React.lazy(() => import('@/pages/Customer/Settings/Integrations').then(m => ({ default: m.Integrations })));
+const EmailTemplateEditor = React.lazy(() => import('@/pages/Customer/Settings/EmailTemplateEditor'));
+const WebhooksPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/WebhooksPage'));
+const OAuthAppsPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/OAuthAppsPage'));
+const DashboardAppsPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/DashboardAppsPage'));
+const AccessTokens = React.lazy(() => import('../pages/Customer/Settings/AccessTokens/AccessTokens'));
+const SlackIntegrationPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/SlackIntegrationPage'));
+const OpenAIPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/OpenAIPage'));
+const BMSPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/BMSPage'));
+const LeadSquaredPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/LeadSquaredPage'));
+const HubSpotPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/HubSpotPage'));
+const ShopifyPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/ShopifyPage'));
+const LinearPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/LinearPage'));
+const DashboardAppPage = React.lazy(() => import('../pages/Customer/DashboardApp'));
+const MetaAdsPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/RealEstate/MetaAdsPage'));
+const RdStationPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/RealEstate/RdStationPage'));
+const Studio360Page = React.lazy(() => import('../pages/Customer/Settings/Integrations/RealEstate/Studio360Page'));
+const LeadloversPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/RealEstate/LeadloversPage'));
+const OruloPage = React.lazy(() => import('../pages/Customer/Settings/Integrations/RealEstate/OruloPage'));
 // import { Overview, Conversations } from '../pages/Customer/Reports';
 // import * as Reports from '../pages/Customer/Reports';
 
@@ -106,12 +106,12 @@ const InboundEmailConfig = React.lazy(() => import('@/pages/Admin/Settings/Inbou
 const FrontendRuntimeConfig = React.lazy(() => import('@/pages/Admin/Settings/FrontendRuntimeConfig'));
 
 // Página de tutoriais
-import Tutorials from '@/pages/Customer/Tutorials';
+const Tutorials = React.lazy(() => import('@/pages/Customer/Tutorials'));
 
 // Páginas compartilhadas
-import Documentation from '@/pages/Shared/Documentation';
-import Marketplace from '@/pages/Shared/Marketplace';
-import Profile from '@/pages/Shared/Profile';
+const Documentation = React.lazy(() => import('@/pages/Shared/Documentation'));
+const Marketplace = React.lazy(() => import('@/pages/Shared/Marketplace'));
+const Profile = React.lazy(() => import('@/pages/Shared/Profile'));
 
 // Página de setup inicial
 import Setup from '@/pages/Setup/Setup';
@@ -148,6 +148,13 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <RouterGuard>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-screen w-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          }
+        >
         <Routes>
           {/* Redirecionamento inteligente da raiz baseado no tipo de usuário */}
           <Route
@@ -1628,6 +1635,7 @@ const AppRouter = () => {
           {/* Rota 404 - Página não encontrada */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </RouterGuard>
     </BrowserRouter>
   );

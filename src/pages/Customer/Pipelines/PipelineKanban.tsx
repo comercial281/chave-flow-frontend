@@ -273,7 +273,8 @@ export default function PipelineKanban() {
   // Load all pipelines for selector
   const loadAllPipelines = useCallback(async () => {
     try {
-      const response = await pipelinesService.getPipelines();
+      // Seletor só precisa de nome/cor/etapas/contagem — modo enxuto (sem itens).
+      const response = await pipelinesService.getPipelines({ include_items: false });
       const pipelinesData = response.data || [];
       setAllPipelines(pipelinesData);
     } catch (error) {

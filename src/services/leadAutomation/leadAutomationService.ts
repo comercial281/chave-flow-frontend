@@ -75,7 +75,22 @@ export const leadAutomationService = {
     const res = await api.post(`${BASE}/${id}/unarchive`);
     return (res.data as { data: LeadAutomationRule }).data;
   },
+
+  // Anúncios já recebidos (CTWA + formulário) pra montar rota de funil por anúncio.
+  async getAdOrigins(): Promise<AdOrigin[]> {
+    const res = await api.get(`${BASE}/ad_origins`);
+    return (res.data as { data: AdOrigin[] }).data ?? [];
+  },
 };
+
+// Anúncio de origem agregado (vindo do ad_referral das conversas/contatos).
+export interface AdOrigin {
+  ad_id: string | null;
+  title: string | null;
+  campaign_name: string | null;
+  source: string;
+  count: number;
+}
 
 // Triggers emitidos pelo backend Rails (LeadAutomationExecutorJob.perform_later).
 // 'lead.no_reply_after' está no model mas nenhum job emite — removido da UI.
