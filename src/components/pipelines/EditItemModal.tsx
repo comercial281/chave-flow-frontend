@@ -172,10 +172,14 @@ export default function EditItemModal({
         setRouletteUser(String(users[idx]?.id ?? ''));
       }
 
-      // Labels ativas na conversa
-      const convLabels = (item.conversation as any)?.labels ?? [];
-      setActiveLabels(Array.isArray(convLabels)
-        ? convLabels.map((l: any) => (typeof l === 'string' ? l : l?.title ?? ''))
+      // Labels ativas: da conversa (lead de WhatsApp) ou, na ausência de conversa
+      // (lead de cadastro/formulário Meta), do contato — senão a tag do contato
+      // ficava invisível no modal.
+      const rawLabels = (item.conversation as any)?.labels
+        ?? (item.contact as any)?.labels
+        ?? [];
+      setActiveLabels(Array.isArray(rawLabels)
+        ? rawLabels.map((l: any) => (typeof l === 'string' ? l : l?.title ?? '')).filter(Boolean)
         : []);
 
       // Fetch catalog e labels disponíveis
