@@ -152,7 +152,12 @@ function MessageBubble({ m, isOutgoing }: { m: Message; isOutgoing: boolean }) {
 }
 
 export default function CardConversationTab({ item, onCreateReminder }: CardConversationTabProps) {
-  const conversationId = item.type === 'conversation' ? item.item_id : null;
+  // Carrega a conversa sempre que o card tiver uma — antes só carregava quando
+  // item.type === 'conversation' (com item_id), então lead com conversa mas type
+  // diferente vinha com 0 mensagens. Prioriza o id real da conversa.
+  const conversationId =
+    (item.conversation?.id ? String(item.conversation.id) : null) ??
+    (item.type === 'conversation' ? item.item_id : null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);

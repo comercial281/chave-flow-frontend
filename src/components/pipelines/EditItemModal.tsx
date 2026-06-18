@@ -563,10 +563,31 @@ export default function EditItemModal({
                       </PopoverTrigger>
                       <PopoverContent className="w-52 p-0" align="start">
                         <Command>
-                          <CommandInput placeholder="Buscar tag..." value={labelSearch} onValueChange={setLabelSearch} />
-                          <CommandList>
-                            <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
-                            <CommandGroup>
+                          <CommandInput placeholder="Buscar ou criar tag..." value={labelSearch} onValueChange={setLabelSearch} />
+                          {/* max-h + overflow + onWheel stopPropagation: sem isso a roda
+                              do mouse não rolava a lista dentro do popover/modal. */}
+                          <CommandList
+                            className="max-h-56 overflow-y-auto overscroll-contain"
+                            onWheel={e => e.stopPropagation()}
+                          >
+                            <CommandEmpty>Digite o nome e clique em "Criar tag".</CommandEmpty>
+                            {/* Criar nova tag: sempre visível no topo. Sem texto digitado,
+                                fica desabilitado pedindo o nome; com texto, cria na hora. */}
+                            <CommandGroup heading="Nova tag">
+                              <CommandItem
+                                value={`__create__${trimmedLabelSearch}`}
+                                disabled={!canCreateLabel || creatingLabel}
+                                onSelect={() => canCreateLabel && createAndApplyLabel(trimmedLabelSearch)}
+                              >
+                                {creatingLabel
+                                  ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                                  : <Plus className="mr-2 h-3.5 w-3.5" />}
+                                {trimmedLabelSearch
+                                  ? `Criar tag "${trimmedLabelSearch}"`
+                                  : 'Digite acima pra criar uma nova tag'}
+                              </CommandItem>
+                            </CommandGroup>
+                            <CommandGroup heading="Tags existentes">
                               {filteredLabels.map(l => (
                                 <CommandItem key={l.id} value={l.title} onSelect={() => { toggleLabel(l.title); setLabelPopoverOpen(false); setLabelSearch(''); }}>
                                   <Check className={`mr-2 h-3.5 w-3.5 ${activeLabels.includes(l.title) ? 'opacity-100' : 'opacity-0'}`} />
@@ -574,14 +595,6 @@ export default function EditItemModal({
                                   {l.title}
                                 </CommandItem>
                               ))}
-                              {canCreateLabel && (
-                                <CommandItem value={trimmedLabelSearch} disabled={creatingLabel} onSelect={() => createAndApplyLabel(trimmedLabelSearch)}>
-                                  {creatingLabel
-                                    ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                                    : <Plus className="mr-2 h-3.5 w-3.5" />}
-                                  Criar tag "{trimmedLabelSearch}"
-                                </CommandItem>
-                              )}
                             </CommandGroup>
                           </CommandList>
                         </Command>
