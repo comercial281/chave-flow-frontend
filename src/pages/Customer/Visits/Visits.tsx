@@ -44,6 +44,7 @@ import type { User } from '@/types/users';
 
 import { VisitsCalendar, CalendarEvent } from '@/components/visits/VisitsCalendar';
 import { LeadCombobox } from '@/components/visits/LeadCombobox';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 const FILTER_TABS = [
   { key: '', label: 'Todas' },
@@ -93,6 +94,7 @@ function toLocalInput(d: Date): string {
 type ViewMode = 'calendar' | 'list';
 
 export default function Visits() {
+  const canCreate = useFeature('visits_create');
   const [visits, setVisits]         = useState<Visit[]>([]);
   const [total, setTotal]           = useState(0);
   const [loading, setLoading]       = useState(false);
@@ -327,10 +329,12 @@ export default function Visits() {
                 Lista
               </button>
             </div>
-            <Button onClick={() => openScheduleModal()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agendar visita
-            </Button>
+            {canCreate && (
+              <Button onClick={() => openScheduleModal()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Agendar visita
+              </Button>
+            )}
           </div>
         </div>
 
@@ -375,10 +379,12 @@ export default function Visits() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <CalendarClock className="h-12 w-12 mb-3" />
             <p className="text-sm font-medium">Nenhuma visita encontrada</p>
-            <Button className="mt-4" onClick={() => openScheduleModal()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agendar primeira visita
-            </Button>
+            {canCreate && (
+              <Button className="mt-4" onClick={() => openScheduleModal()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Agendar primeira visita
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-6 max-w-3xl mx-auto">

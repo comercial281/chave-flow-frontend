@@ -2,6 +2,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { Button, Badge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@evoapi/design-system';
 import { Edit, Trash2, MoreVertical, Phone, Mail, MessageSquare, User, Clock, AlertCircle, ListTodo, CheckCircle2, GripVertical, GitBranch, Megaphone, Home } from 'lucide-react';
 import { PipelineItem, Pipeline, PipelineStage } from '@/types/analytics';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 interface PipelineItemCardProps {
   item: PipelineItem;
@@ -42,6 +43,9 @@ export default function PipelineItemCard({
   showActions = true,
 }: PipelineItemCardProps) {
   const { t } = useLanguage('pipelines');
+  const canRemoveFromPipeline = useFeature('card_remove_from_pipeline');
+  // Item "Remover do pipeline" só aparece se a feature estiver ligada E houver handler.
+  const showRemove = !!onRemove && canRemoveFromPipeline;
 
   return (
     <div
@@ -49,7 +53,7 @@ export default function PipelineItemCard({
       onClick={() => onView?.(item)}
     >
       {/* Card Options Menu */}
-      {showActions && (onEdit || onRemove) && (
+      {showActions && (onEdit || showRemove) && (
         <div
           className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           onClick={e => e.stopPropagation()}
@@ -72,11 +76,11 @@ export default function PipelineItemCard({
                     {t('kanban.item.editItem')}
                   </DropdownMenuItem>
                 )}
-                {onEdit && onRemove && <DropdownMenuSeparator />}
-                {onRemove && (
+                {onEdit && showRemove && <DropdownMenuSeparator />}
+                {showRemove && (
                   <DropdownMenuItem
                     className="text-destructive"
-                    onClick={() => onRemove(item)}
+                    onClick={() => onRemove!(item)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     {t('kanban.item.removeFromPipeline')}

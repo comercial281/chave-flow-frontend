@@ -10,6 +10,7 @@ import { conversationAPI } from '@/services/conversations/conversationService';
 import { pipelinesService } from '@/services/pipelines/pipelinesService';
 import { visitsService } from '@/services/visits/visitsService';
 import { ScheduleActionModal } from '@/components/scheduledActions/ScheduleActionModal';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 import type { PipelineItem, PipelineStage } from '@/types/analytics';
 
 const VISIT_SCHEDULED_LABEL = 'visita-agendada';
@@ -32,6 +33,8 @@ export default function CardActionsPanel({
   onStageChanged,
   onRemoved,
 }: CardActionsPanelProps) {
+  const canScheduleAction = useFeature('card_schedule_action');
+
   const convId = item.conversation?.id ? String(item.conversation.id) : null;
   const contactId = item.contact?.id ?? (item.conversation as any)?.contact?.id;
 
@@ -326,7 +329,7 @@ export default function CardActionsPanel({
       <div className="rounded-lg border border-border p-3 space-y-2">
         <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ações</h5>
         <div className="flex flex-wrap gap-2">
-          {contactId && (
+          {contactId && canScheduleAction && (
             <Button
               size="sm"
               variant="outline"

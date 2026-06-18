@@ -18,6 +18,10 @@ interface Props {
 const GROUP_LABELS: Record<string, string> = {
   menus:            'Menus principais',
   pipeline_actions: 'Ações do board (Pipeline)',
+  chat_actions:     'Ações do Chat',
+  card_actions:     'Ações do card do lead',
+  contacts_actions: 'Ações de Contatos',
+  module_actions:   'Ações dos módulos',
   settings:         'Configurações de produto',
 };
 

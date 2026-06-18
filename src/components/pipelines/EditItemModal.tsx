@@ -42,6 +42,7 @@ import CardConversationTab from './CardConversationTab';
 import CardActionsPanel from './CardActionsPanel';
 import CardNotesTab from './CardNotesTab';
 import CardPropertyInterests from './CardPropertyInterests';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 import ContactAvatar from '@/components/chat/contact/ContactAvatar';
 import { conversationAPI } from '@/services/conversations/conversationService';
 import { contactEventsService } from '@/services/contacts/contactEventsService';
@@ -83,6 +84,12 @@ export default function EditItemModal({
   const { t } = useLanguage('pipelines');
   const navigate = useNavigate();
   const { users } = useAccountUsers();
+
+  // Feature flags do tenant (ausente/ligada = true → preserva comportamento atual).
+  const canNotes = useFeature('card_notes');
+  const canTasks = useFeature('card_tasks');
+  const canProperties = useFeature('card_property_interests');
+
   const [notes, setNotes] = useState('');
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -378,6 +385,16 @@ export default function EditItemModal({
   );
   const canCreateLabel = trimmedLabelSearch.length > 0 && !exactLabelExists;
 
+  // Conta as abas visíveis pra ajustar o grid e não deixar buraco quando uma feature está off.
+  // Fixas: Detalhes, Conversa, Origem. Opcionais: Imóveis, Tarefas, Observações.
+  const visibleTabsCount = 3 + (canProperties ? 1 : 0) + (canTasks ? 1 : 0) + (canNotes ? 1 : 0);
+  const tabsGridClass = {
+    3: 'grid-cols-3',
+    4: 'grid-cols-4',
+    5: 'grid-cols-5',
+    6: 'grid-cols-6',
+  }[visibleTabsCount] ?? 'grid-cols-6';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -438,29 +455,35 @@ export default function EditItemModal({
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-6 shrink-0">
+          <TabsList className={`grid w-full ${tabsGridClass} shrink-0`}>
             <TabsTrigger value="overview">Detalhes</TabsTrigger>
             <TabsTrigger value="conversation">Conversa</TabsTrigger>
-            <TabsTrigger value="properties" className="flex items-center gap-1">
-              <Home className="h-3 w-3" />
-              Imóveis
-            </TabsTrigger>
+            {canProperties && (
+              <TabsTrigger value="properties" className="flex items-center gap-1">
+                <Home className="h-3 w-3" />
+                Imóveis
+              </TabsTrigger>
+            )}
             <TabsTrigger value="origin" className="flex items-center gap-1">
               <Megaphone className="h-3 w-3" />
               Origem
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="relative">
-              {t('editItem.tabs.tasks')}
-              {(pendingCount > 0 || overdueCount > 0) && (
-                <span className="ml-1 px-1 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
-                  {pendingCount + overdueCount}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              Observações
-            </TabsTrigger>
+            {canTasks && (
+              <TabsTrigger value="tasks" className="relative">
+                {t('editItem.tabs.tasks')}
+                {(pendingCount > 0 || overdueCount > 0) && (
+                  <span className="ml-1 px-1 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
+                    {pendingCount + overdueCount}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            {canNotes && (
+              <TabsTrigger value="notes" className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" />
+                Observações
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Overview: split left=form right=history */}
@@ -714,27 +737,31 @@ export default function EditItemModal({
           </TabsContent>
 
           {/* Tarefas */}
-          <TabsContent value="tasks" className="flex-1 overflow-y-auto mt-0 pt-3">
-            {item && (
-              <PipelineTasksList
-                ref={tasksListRef}
-                pipelineId={item.pipeline_id}
-                pipelineItemId={item.id}
-                onCreateClick={() => setShowCreateTaskModal(true)}
-                onEditClick={(task: PipelineTask) => { setTaskToEdit(task); setShowEditTaskModal(true); }}
-                onAddSubtask={(parentTask: PipelineTask) => { setParentTaskForSubtask(parentTask); setShowCreateTaskModal(true); }}
-              />
-            )}
-          </TabsContent>
+          {canTasks && (
+            <TabsContent value="tasks" className="flex-1 overflow-y-auto mt-0 pt-3">
+              {item && (
+                <PipelineTasksList
+                  ref={tasksListRef}
+                  pipelineId={item.pipeline_id}
+                  pipelineItemId={item.id}
+                  onCreateClick={() => setShowCreateTaskModal(true)}
+                  onEditClick={(task: PipelineTask) => { setTaskToEdit(task); setShowEditTaskModal(true); }}
+                  onAddSubtask={(parentTask: PipelineTask) => { setParentTaskForSubtask(parentTask); setShowCreateTaskModal(true); }}
+                />
+              )}
+            </TabsContent>
+          )}
 
           {/* Imóveis de interesse */}
-          <TabsContent value="properties" className="flex-1 overflow-y-auto mt-0 pt-3">
-            {item && (
-              <CardPropertyInterests
-                item={item}
-              />
-            )}
-          </TabsContent>
+          {canProperties && (
+            <TabsContent value="properties" className="flex-1 overflow-y-auto mt-0 pt-3">
+              {item && (
+                <CardPropertyInterests
+                  item={item}
+                />
+              )}
+            </TabsContent>
+          )}
 
           {/* Origem do lead (campanha / anúncio / tracking) */}
           <TabsContent value="origin" className="flex-1 overflow-y-auto mt-0 pt-3">
@@ -783,13 +810,15 @@ export default function EditItemModal({
           </TabsContent>
 
           {/* Observações (comentários da equipe) */}
-          <TabsContent value="notes" className="flex-1 overflow-hidden mt-0 pt-3">
-            {item && (
-              <CardNotesTab
-                contactId={item.contact?.id ? String(item.contact.id) : ((item.conversation as any)?.contact?.id ? String((item.conversation as any).contact.id) : null)}
-              />
-            )}
-          </TabsContent>
+          {canNotes && (
+            <TabsContent value="notes" className="flex-1 overflow-hidden mt-0 pt-3">
+              {item && (
+                <CardNotesTab
+                  contactId={item.contact?.id ? String(item.contact.id) : ((item.conversation as any)?.contact?.id ? String((item.conversation as any).contact.id) : null)}
+                />
+              )}
+            </TabsContent>
+          )}
 
           {/* Services Tab (hidden from tabs, kept for data compat) */}
           <TabsContent value="services" className="py-4 space-y-4 overflow-y-auto max-h-[60vh]">

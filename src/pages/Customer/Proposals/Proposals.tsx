@@ -37,6 +37,7 @@ import {
 import { propertiesService, Property } from '@/services/properties/propertiesService';
 import { LeadCombobox } from '@/components/visits/LeadCombobox';
 import { LeadPickerItem } from '@/services/visits/visitsService';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 function formatCurrency(value?: number | null): string {
   if (value == null) return '-';
@@ -83,6 +84,7 @@ interface RejectModalState { open: boolean; proposalId: string; reason: string }
 interface CounterModalState { open: boolean; proposalId: string; value: string }
 
 export default function Proposals() {
+  const canCreate = useFeature('proposals_create');
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -311,10 +313,12 @@ export default function Proposals() {
             <h1 className="text-2xl font-bold text-foreground">Propostas</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Gerencie propostas comerciais de compra e locação</p>
           </div>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nova Proposta
-          </Button>
+          {canCreate && (
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Proposta
+            </Button>
+          )}
         </div>
 
         {/* Stats */}
@@ -594,6 +598,7 @@ interface ProposalCardProps {
 }
 
 function ProposalCard({ proposal, onEdit, onDelete, onSend, onAccept, onReject, onWithdraw, onCounter }: ProposalCardProps) {
+  const canSendFeature = useFeature('proposals_send');
   const statusColor = PROPOSAL_STATUS_COLORS[proposal.status] ?? '';
   const statusLabel = PROPOSAL_STATUS_LABELS[proposal.status] ?? proposal.status;
   const typeLabel = PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type;
@@ -682,7 +687,7 @@ function ProposalCard({ proposal, onEdit, onDelete, onSend, onAccept, onReject, 
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {canSend && (
+          {canSend && canSendFeature && (
             <Button size="sm" variant="outline" className="gap-1 h-8 text-xs" onClick={onSend}>
               <Send className="h-3 w-3" />
               Enviar

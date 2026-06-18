@@ -20,6 +20,7 @@ interface AgentsHeaderProps {
   onClearSelection: () => void;
   activeFilters?: HeaderFilter[];
   showFilters?: boolean;
+  canCreate?: boolean;
 }
 
 export default function AgentsHeader({
@@ -34,11 +35,12 @@ export default function AgentsHeader({
   onClearSelection,
   activeFilters = [],
   showFilters = true,
+  canCreate = true,
 }: AgentsHeaderProps) {
   const { t } = useLanguage('agents');
   const { can, isReady } = useUserPermissions();
 
-  const primaryAction: HeaderAction | undefined = isReady && can('ai_agents', 'create') ? {
+  const primaryAction: HeaderAction | undefined = isReady && canCreate && can('ai_agents', 'create') ? {
     label: t('createAgent'),
     icon: <Plus className="h-4 w-4" />,
     onClick: onNewAgent,

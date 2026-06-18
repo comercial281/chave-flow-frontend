@@ -2,6 +2,7 @@ import { LockIcon, MessageSquareIcon } from 'lucide-react';
 import { Button } from '@evoapi/design-system/button';
 import { ReplyMode } from '@/types/chat/api';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 interface ReplyModeToggleProps {
   currentMode: ReplyMode;
@@ -17,6 +18,7 @@ export const ReplyModeToggle = ({
   forcedMode,
 }: ReplyModeToggleProps) => {
   const { t } = useLanguage('chat');
+  const canPrivateNote = useFeature('chat_private_note');
   const effectiveMode = forcedMode || currentMode;
   const isReplyMode = effectiveMode === ReplyMode.REPLY;
   const isNoteMode = effectiveMode === ReplyMode.NOTE;
@@ -45,24 +47,26 @@ export const ReplyModeToggle = ({
           {t('replyModeToggle.reply')}
         </Button>
 
-        {/* Botão Nota Privada */}
-        <Button
-          variant={isNoteMode ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => onModeChange(ReplyMode.NOTE)}
-          disabled={disabled || (forcedMode && forcedMode !== ReplyMode.NOTE)}
-          className={`
-            h-7 px-3 text-xs font-medium transition-all duration-200 flex items-center gap-1.5
-            ${
-              isNoteMode
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-            }
-          `}
-        >
-          <LockIcon className="h-3 w-3" />
-          {t('replyModeToggle.privateNote')}
-        </Button>
+        {/* Botão Nota Privada - escondido quando a feature está off (a menos que esteja forçado em NOTE) */}
+        {(canPrivateNote || isNoteMode) && (
+          <Button
+            variant={isNoteMode ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onModeChange(ReplyMode.NOTE)}
+            disabled={disabled || (forcedMode && forcedMode !== ReplyMode.NOTE)}
+            className={`
+              h-7 px-3 text-xs font-medium transition-all duration-200 flex items-center gap-1.5
+              ${
+                isNoteMode
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }
+            `}
+          >
+            <LockIcon className="h-3 w-3" />
+            {t('replyModeToggle.privateNote')}
+          </Button>
+        )}
       </div>
 
       {/* Indicador de modo ativo - Separado do toggle */}

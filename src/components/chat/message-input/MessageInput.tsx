@@ -26,6 +26,7 @@ import { AudioRecordingData } from '@/hooks/chat/useAudioRecorder';
 import { useMessageSignature } from '@/hooks/useMessageSignature';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 import FileUpload from './FileUpload';
 import FilePreview from './FilePreview';
@@ -84,6 +85,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const { t } = useLanguage('chat');
   const { user } = useAuth();
+
+  // Feature flags por tenant (ON quando a chave está ausente/ligada)
+  const canSendAudio = useFeature('chat_send_audio');
+  const canSendAttachment = useFeature('chat_send_attachment');
+  const canEmoji = useFeature('chat_emoji');
+  const canMessageFunnel = useFeature('chat_message_funnel');
+  const canMessageTemplate = useFeature('chat_message_template');
 
   // Detectar se é WhatsApp Cloud (apenas Cloud, não baileys/evolution/evolution_go)
   const isWhatsAppCloud = React.useMemo(() => {
@@ -458,12 +466,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
         {/* Input Area */}
         <CardContent className="p-4 px-4 py-4 relative">
           {/* 🚀 FUNIS DE MENSAGEM (substitui Canned Responses + Quick Replies) */}
-          <MessageFunnelPopover
-            isOpen={showFunnels}
-            onClose={() => setShowFunnels(false)}
-            conversation={selectedConversation}
-            onSendMessage={onSendMessage}
-          />
+          {canMessageFunnel && (
+            <MessageFunnelPopover
+              isOpen={showFunnels}
+              onClose={() => setShowFunnels(false)}
+              conversation={selectedConversation}
+              onSendMessage={onSendMessage}
+            />
+          )}
 
           {/* Primeira linha: Reply Mode Toggle + Botões de ação rápida */}
           <div className="flex items-center justify-between mb-3 gap-3">
@@ -526,54 +536,62 @@ const MessageInput: React.FC<MessageInputProps> = ({
             {/* Botões de formatação à esquerda */}
             <div className="flex-shrink-0 flex items-center gap-1.5 pb-1">
               {/* File Upload Button */}
-              <FileUpload
-                onFilesSelected={handleFilesSelected}
-                maxFileSize={10}
-                multiple={true}
-                disabled={isDisabled || isSending || isPendingConversation}
-              />
+              {canSendAttachment && (
+                <FileUpload
+                  onFilesSelected={handleFilesSelected}
+                  maxFileSize={10}
+                  multiple={true}
+                  disabled={isDisabled || isSending || isPendingConversation}
+                />
+              )}
 
               {/* Emoji Button */}
-              <div className="relative">
+              {canEmoji && (
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isDisabled || isSending || isPendingConversation}
+                    className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
+                    onClick={handleEmojiClick}
+                  >
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                  <EmojiPicker
+                    isOpen={showEmojiPicker}
+                    onEmojiSelect={handleEmojiSelect}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                </div>
+              )}
+
+              {/* 🚀 Funis de Mensagem (substitui Canned Responses + Quick Replies) */}
+              {canMessageFunnel && (
                 <Button
-                  variant="ghost"
+                  variant={showFunnels ? 'default' : 'ghost'}
                   size="icon"
                   disabled={isDisabled || isSending || isPendingConversation}
                   className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
-                  onClick={handleEmojiClick}
+                  onClick={() => setShowFunnels(v => !v)}
+                  title="Funis de Mensagem"
                 >
-                  <Smile className="h-4 w-4" />
+                  <Rocket className="h-4 w-4" />
                 </Button>
-                <EmojiPicker
-                  isOpen={showEmojiPicker}
-                  onEmojiSelect={handleEmojiSelect}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
-              </div>
-
-              {/* 🚀 Funis de Mensagem (substitui Canned Responses + Quick Replies) */}
-              <Button
-                variant={showFunnels ? 'default' : 'ghost'}
-                size="icon"
-                disabled={isDisabled || isSending || isPendingConversation}
-                className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
-                onClick={() => setShowFunnels(v => !v)}
-                title="Funis de Mensagem"
-              >
-                <Rocket className="h-4 w-4" />
-              </Button>
+              )}
 
               {/* Template Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={isSending || isPendingConversation}
-                className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
-                onClick={handleTemplateClick}
-                title={t('messageTemplates.button.title')}
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
+              {canMessageTemplate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isSending || isPendingConversation}
+                  className="h-9 w-9 flex-shrink-0 hover:bg-accent disabled:opacity-50"
+                  onClick={handleTemplateClick}
+                  title={t('messageTemplates.button.title')}
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             {/* Text Input Container */}
@@ -635,7 +653,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
             {/* Action Buttons */}
             <div className="flex-shrink-0 flex items-center gap-1.5 pb-1">
-              {replyMode === ReplyMode.REPLY && !isPendingConversation && (
+              {canSendAudio && replyMode === ReplyMode.REPLY && !isPendingConversation && (
                 <Button
                   variant={isRecordingAudio ? 'default' : 'ghost'}
                   size="icon"

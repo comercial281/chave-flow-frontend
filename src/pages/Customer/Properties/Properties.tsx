@@ -56,6 +56,7 @@ import {
   ACCEPTED_MIME_TYPES,
   MAX_UPLOAD_BYTES,
 } from '@/services/propertyPhotos/propertyPhotosService';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 const EMPTY_FORM: PropertyFormData = {
   title: '',
@@ -97,6 +98,9 @@ const formatCurrency = (v?: number | null) =>
 
 export default function Properties() {
   const navigate = useNavigate();
+  const canCreate      = useFeature('properties_create');
+  const canAiDesc      = useFeature('properties_ai_description');
+  const canAiBatch     = useFeature('properties_ai_batch');
   const [properties, setProperties] = useState<Property[]>([]);
   const [total, setTotal]           = useState(0);
   const [loading, setLoading]       = useState(false);
@@ -365,14 +369,18 @@ export default function Properties() {
               <MapPin className="h-4 w-4 mr-2" />
               Ver no mapa
             </Button>
-            <Button variant="outline" onClick={() => { setBatchSelected(new Set()); setBatchResults(null); setBatchModalOpen(true); }}>
-              <Wand2 className="h-4 w-4 mr-2" />
-              IA em lote
-            </Button>
-            <Button onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Cadastrar imóvel
-            </Button>
+            {canAiBatch && (
+              <Button variant="outline" onClick={() => { setBatchSelected(new Set()); setBatchResults(null); setBatchModalOpen(true); }}>
+                <Wand2 className="h-4 w-4 mr-2" />
+                IA em lote
+              </Button>
+            )}
+            {canCreate && (
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Cadastrar imóvel
+              </Button>
+            )}
           </div>
         </div>
 
@@ -455,10 +463,12 @@ export default function Properties() {
             <Building2 className="h-12 w-12 mb-3" />
             <p className="text-sm font-medium">Nenhum imóvel encontrado</p>
             <p className="text-xs mt-1">Cadastre o primeiro imóvel do seu portfólio</p>
-            <Button className="mt-4" onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Cadastrar imóvel
-            </Button>
+            {canCreate && (
+              <Button className="mt-4" onClick={openCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Cadastrar imóvel
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -677,7 +687,7 @@ export default function Properties() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <UILabel>Descrição</UILabel>
-                {editing && (
+                {editing && canAiDesc && (
                   <Button
                     type="button"
                     variant="outline"

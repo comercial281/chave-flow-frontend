@@ -28,10 +28,12 @@ import EmptyState from '@/components/base/EmptyState';
 // table types imported where needed in ChannelsTable
 import { useNavigate } from 'react-router-dom';
 import { ChannelsTour } from '@/tours';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 export default function Channels() {
   const { can, isReady: permissionsReady, loading: permissionsLoading } = useUserPermissions();
   const { t } = useLanguage('channels');
+  const canConnect = useFeature('channels_connect');
 
   const { inboxes, isLoadingInboxes, fetchInboxes, removeInbox } = useAppDataStore();
   const [query, setQuery] = useState('');
@@ -178,6 +180,7 @@ export default function Channels() {
           searchValue={query}
           onSearchChange={setQuery}
           onNewChannel={handleNewChannel}
+          canCreate={canConnect}
           onClearSelection={() => {}}
         />
       </div>
@@ -215,7 +218,7 @@ export default function Channels() {
             icon={Layers}
             title={t('emptyState.title')}
             description={t('emptyState.description')}
-            action={{ label: t('emptyState.action'), onClick: handleNewChannel }}
+            action={canConnect ? { label: t('emptyState.action'), onClick: handleNewChannel } : undefined}
             className="h-full"
           />
         ) : viewMode === 'cards' ? (

@@ -15,6 +15,7 @@ import { exportAsJson, generateExportFilename } from '@/utils/exportUtils';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import type { PaginationMeta } from '@/types/core';
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 interface AgentsState {
   agents: Agent[];
@@ -44,6 +45,7 @@ const Agentes = () => {
   const location = useLocation();
   const { t } = useLanguage('agents');
   const { can, isReady: permissionsReady, loading: permissionsLoading } = useUserPermissions();
+  const canCreateAgent = useFeature('ai_agents_create');
   useDarkMode();
 
   const [state, setState] = useState<AgentsState>(INITIAL_STATE);
@@ -275,6 +277,7 @@ const Agentes = () => {
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
               onNewAgent={handleCreateAgent}
+              canCreate={canCreateAgent}
               onExport={handleExportAllAgents}
               onManageApiKeys={() => setIsApiKeysModalOpen(true)}
               onBulkDelete={handleBulkDelete}
@@ -315,10 +318,10 @@ const Agentes = () => {
                 icon={Bot}
                 title={t('emptyState.title')}
                 description={t('emptyState.description')}
-                action={{
+                action={canCreateAgent ? {
                   label: t('createAgent'),
                   onClick: handleCreateAgent,
-                }}
+                } : undefined}
               />
             ) : filteredAgents.length === 0 ? (
               <EmptyState

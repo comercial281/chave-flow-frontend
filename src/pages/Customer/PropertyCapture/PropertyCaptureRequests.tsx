@@ -22,6 +22,7 @@ import {
   CAPTURE_STATUS_COLORS,
 } from '@/services/propertyCaptureRequests/propertyCaptureRequestsService';
 import { TRANSACTION_TYPE_LABELS, PROPERTY_TYPE_LABELS } from '@/services/properties/propertiesService';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 
 const STATUS_TABS = [
   { key: '', label: 'Todas' },
@@ -233,6 +234,7 @@ function CaptureRequestCard({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const canApprove = useFeature('property_capture_approve');
   const statusColor = CAPTURE_STATUS_COLORS[r.status] ?? '';
   const statusLabel = CAPTURE_STATUS_LABELS[r.status] ?? r.status;
   const canAct = r.status === 'pending_review' || r.status === 'assigned';
@@ -322,15 +324,17 @@ function CaptureRequestCard({
         {/* Actions */}
         {canAct && (
           <div className="flex items-center gap-2 shrink-0">
-            <Button
-              size="sm"
-              className="gap-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              onClick={onApprove}
-              disabled={isActing}
-            >
-              <CheckCircle className="h-3 w-3" />
-              Aprovar
-            </Button>
+            {canApprove && (
+              <Button
+                size="sm"
+                className="gap-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
+                onClick={onApprove}
+                disabled={isActing}
+              >
+                <CheckCircle className="h-3 w-3" />
+                Aprovar
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
