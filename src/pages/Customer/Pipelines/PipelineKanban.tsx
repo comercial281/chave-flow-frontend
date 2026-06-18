@@ -55,6 +55,7 @@ import CreateStageModal from '@/components/pipelines/CreateStageModal';
 import AddItemModal from '@/components/pipelines/AddItemModal';
 import ImportLeadsModal from '@/components/pipelines/ImportLeadsModal';
 import BulkDispatchModal from '@/components/pipelines/BulkDispatchModal';
+import { useFeature } from '@/contexts/TenantFeaturesContext';
 import RemoveItemModal from '@/components/pipelines/RemoveItemModal';
 import EditItemModal from '@/components/pipelines/EditItemModal';
 import EditStageModal from '@/components/pipelines/EditStageModal';
@@ -186,6 +187,12 @@ export default function PipelineKanban() {
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [disparoModalOpen, setDisparoModalOpen] = useState(false);
+
+  // Feature flags por cliente (super-admin liga/desliga no painel Clientes CRM).
+  const canImport = useFeature('pipeline_import');
+  const canExport = useFeature('pipeline_export');
+  const canAddItem = useFeature('pipeline_add_item');
+  const canBulkDispatch = useFeature('bulk_campaigns');
 
   // Load pipeline data
   const loadPipelineData = useCallback(async () => {
@@ -809,45 +816,53 @@ export default function PipelineKanban() {
                     <div className="text-muted-foreground">{t('kanban.header.totalValue')}</div>
                   </div>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setImportModalOpen(true)}
-                  className="whitespace-nowrap"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Importar
-                </Button>
+                {canImport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setImportModalOpen(true)}
+                    className="whitespace-nowrap"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Importar
+                  </Button>
+                )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportCSV}
-                  className="whitespace-nowrap"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
+                {canExport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    className="whitespace-nowrap"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar
+                  </Button>
+                )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDisparoModalOpen(true)}
-                  className="whitespace-nowrap"
-                >
-                  <Megaphone className="w-4 h-4 mr-2" />
-                  Disparo em massa
-                </Button>
+                {canBulkDispatch && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDisparoModalOpen(true)}
+                    className="whitespace-nowrap"
+                  >
+                    <Megaphone className="w-4 h-4 mr-2" />
+                    Disparo em massa
+                  </Button>
+                )}
 
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => handleAddItem()}
-                  className="whitespace-nowrap"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('kanban.header.addItem')}
-                </Button>
+                {canAddItem && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleAddItem()}
+                    className="whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('kanban.header.addItem')}
+                  </Button>
+                )}
 
                 {/* Pipeline Options Menu */}
                 <DropdownMenu>

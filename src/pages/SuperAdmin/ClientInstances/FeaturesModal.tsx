@@ -16,8 +16,9 @@ interface Props {
 }
 
 const GROUP_LABELS: Record<string, string> = {
-  menus:    'Menus principais',
-  settings: 'Configurações de produto',
+  menus:            'Menus principais',
+  pipeline_actions: 'Ações do board (Pipeline)',
+  settings:         'Configurações de produto',
 };
 
 function pickError(e: any): string {
