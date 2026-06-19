@@ -68,6 +68,7 @@ const ClientInstances = React.lazy(() => import('@/pages/SuperAdmin/ClientInstan
 const Monitoring = React.lazy(() => import('@/pages/SuperAdmin/Monitoring'));
 const AutomationTemplatesPage = React.lazy(() => import('@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates'));
 const RoletaConfigPage = React.lazy(() => import('@/pages/Customer/Settings/RoletaConfig/RoletaConfig'));
+const AutomationsLayout = React.lazy(() => import('@/pages/Customer/Automations/AutomationsLayout'));
 const PropertyInterests = React.lazy(() => import('@/pages/Customer/PropertyInterests').then(m => ({ default: m.PropertyInterests })));
 const Macros = React.lazy(() => import('@/pages/Customer/Settings/Macros').then(m => ({ default: m.Macros })));
 const WhatsappReminders = React.lazy(() => import('@/pages/Customer/Settings/WhatsappReminders'));
@@ -472,6 +473,83 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
+
+          {/* Automações — aba única com submenu por setor (substitui os itens
+              soltos que viviam em Configurações). As rotas /settings/* antigas
+              continuam vivas para deep-links/compat. */}
+          <Route
+            path="/automations"
+            element={
+              <PrivateRoute>
+                <CustomerRoute>
+                  <MainLayout>
+                    <AutomationsLayout />
+                  </MainLayout>
+                </CustomerRoute>
+              </PrivateRoute>
+            }
+          >
+            <Route
+              path="message-funnels"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <PermissionRoute resource="canned_responses" action="read">
+                    <MessageFunnels />
+                  </PermissionRoute>
+                </Suspense>
+              }
+            />
+            <Route
+              path="template-variables"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <PermissionRoute resource="canned_responses" action="read">
+                    <TemplateVariables />
+                  </PermissionRoute>
+                </Suspense>
+              }
+            />
+            <Route
+              path="lead-automations"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <LeadAutomations />
+                </Suspense>
+              }
+            />
+            <Route
+              path="lead-ads-forms"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <LeadAdsForms />
+                </Suspense>
+              }
+            />
+            <Route
+              path="follow-ups"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <FollowupSequences />
+                </Suspense>
+              }
+            />
+            <Route
+              path="whatsapp-reminders"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <WhatsappReminders />
+                </Suspense>
+              }
+            />
+            <Route
+              path="roleta-config"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <RoletaConfigPage />
+                </Suspense>
+              }
+            />
+          </Route>
 
           {/* <Route
             path="/automation"

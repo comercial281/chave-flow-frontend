@@ -31,11 +31,7 @@ import {
   Globe,
   FileText,
   TrendingUp,
-  Rocket,
-  Bell,
-  Shuffle,
   Library,
-  FileInput,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -209,6 +205,11 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
     featureKey: 'channels',
   },
   {
+    name: 'Automações',
+    href: '/automations',
+    icon: Zap,
+  },
+  {
     name: 'Marketplace',
     href: '/marketplace',
     icon: Store,
@@ -291,46 +292,9 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
         action: 'read',
       },
       {
-        name: 'Funis de Mensagem',
-        href: '/settings/message-funnels',
-        icon: Rocket,
-        resource: 'canned_responses',
-        action: 'read',
-        featureKey: 'message_funnels',
-      },
-      {
-        name: 'Variáveis de Funis',
-        href: '/settings/template-variables',
-        icon: Code,
-        resource: 'canned_responses',
-        action: 'read',
-        featureKey: 'message_funnels',
-      },
-      {
-        name: 'Automações Boas-Vindas',
-        href: '/settings/welcome-automations',
+        name: 'Automações',
+        href: '/automations',
         icon: Zap,
-        featureKey: 'welcome_automations',
-      },
-      {
-        name: 'Automações de Lead',
-        href: '/settings/lead-automations',
-        icon: Zap,
-        featureKey: 'lead_automations',
-        clientToggleKey: 'client_manage_automations',
-      },
-      {
-        name: 'Formulários (Meta)',
-        href: '/settings/lead-ads-forms',
-        icon: FileInput,
-        featureKey: 'lead_automations',
-        clientToggleKey: 'client_manage_automations',
-      },
-      {
-        name: 'Follow-ups',
-        href: '/settings/follow-ups',
-        icon: Zap,
-        featureKey: 'follow_ups',
       },
       {
         name: 'Produtos',
@@ -358,17 +322,6 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
       //   resource: 'macros',
       //   action: 'read',
       // },
-      {
-        name: 'Lembretes',
-        href: '/settings/whatsapp-reminders',
-        icon: Bell,
-      },
-      {
-        name: 'Roleta de Corretores',
-        href: '/settings/roleta-config',
-        icon: Shuffle,
-        featureKey: 'lead_automations',
-      },
       {
         name: t('menu.settings.integrations'),
         href: '/settings/integrations',
