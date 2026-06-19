@@ -434,3 +434,16 @@
 .lmf-btn-shimmer:hover {
   animation-duration: 1.2s;
 }
+
+/* Toggles (Switch) globais do LM Flow: ATIVO = verde, DESATIVADO = vermelho.
+   Cobre o Switch do design system (Radix: role=switch + data-state) e o fallback aria-checked. */
+button[role='switch'][data-state='checked'],
+[role='switch'][aria-checked='true'] {
+  background-color: #22c55e !important; /* verde */
+  border-color: #22c55e !important;
+}
+button[role='switch'][data-state='unchecked'],
+[role='switch'][aria-checked='false'] {
+  background-color: #ef4444 !important; /* vermelho */
+  border-color: #ef4444 !important;
+}

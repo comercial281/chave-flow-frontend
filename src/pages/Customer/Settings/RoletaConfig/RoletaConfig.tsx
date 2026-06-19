@@ -320,8 +320,8 @@ export default function RoletaConfigPage() {
             <div className="flex items-center gap-3">
               <button type="button" onClick={() => setIsActive(!isActive)} className="text-[#7c3aed]">
                 {isActive
-                  ? <ToggleRight className="h-7 w-7" />
-                  : <ToggleLeft className="h-7 w-7 text-muted-foreground" />}
+                  ? <ToggleRight className="h-7 w-7 text-green-500" />
+                  : <ToggleLeft className="h-7 w-7 text-red-500" />}
               </button>
               <div>
                 <p className="text-sm font-medium">Roleta {isActive ? 'ativa' : 'desativada'}</p>
@@ -421,7 +421,7 @@ export default function RoletaConfigPage() {
                         <button
                           type="button"
                           onClick={() => updateMember(m.localId, 'is_active', !m.is_active)}
-                          className={m.is_active ? 'text-[#7c3aed]' : 'text-muted-foreground'}
+                          className={m.is_active ? 'text-green-500' : 'text-red-500'}
                         >
                           {m.is_active
                             ? <ToggleRight className="h-5 w-5" />

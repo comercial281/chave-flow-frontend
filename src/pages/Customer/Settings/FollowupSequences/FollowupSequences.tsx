@@ -379,7 +379,7 @@ export default function FollowupSequences() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={() => toggle(seq)}>
-                    {seq.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                    {seq.is_active ? <ToggleRight className="h-4 w-4 text-green-500" /> : <ToggleLeft className="h-4 w-4 text-red-500" />}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => openTest(seq.id)}>
                     <Send className="mr-1 h-3 w-3" /> Testar

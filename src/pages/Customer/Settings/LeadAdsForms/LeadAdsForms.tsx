@@ -281,8 +281,8 @@ export default function LeadAdsForms() {
                     title={cfg.is_active ? 'Desativar' : 'Ativar'}
                   >
                     {cfg.is_active
-                      ? <ToggleRight className="h-6 w-6 text-primary" />
-                      : <ToggleLeft className="h-6 w-6 text-muted-foreground" />}
+                      ? <ToggleRight className="h-6 w-6 text-green-500" />
+                      : <ToggleLeft className="h-6 w-6 text-red-500" />}
                   </button>
 
                   <div className="flex-1 min-w-0">

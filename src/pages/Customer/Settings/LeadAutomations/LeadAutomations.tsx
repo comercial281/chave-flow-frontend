@@ -326,8 +326,8 @@ export default function LeadAutomations() {
                     title={rule.is_active ? 'Desativar' : 'Ativar'}
                   >
                     {rule.is_active
-                      ? <ToggleRight className="h-6 w-6 text-primary" />
-                      : <ToggleLeft className="h-6 w-6 text-muted-foreground" />}
+                      ? <ToggleRight className="h-6 w-6 text-green-500" />
+                      : <ToggleLeft className="h-6 w-6 text-red-500" />}
                   </button>
                 )}
 

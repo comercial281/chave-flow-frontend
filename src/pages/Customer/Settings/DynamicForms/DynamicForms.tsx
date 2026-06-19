@@ -336,8 +336,8 @@ export default function DynamicForms() {
                 className="flex items-center gap-2 text-sm"
               >
                 {formData.active
-                  ? <ToggleRight className="h-5 w-5 text-primary" />
-                  : <ToggleLeft className="h-5 w-5 text-muted-foreground" />}
+                  ? <ToggleRight className="h-5 w-5 text-green-500" />
+                  : <ToggleLeft className="h-5 w-5 text-red-500" />}
                 <span className={formData.active ? 'text-foreground' : 'text-muted-foreground'}>
                   {formData.active ? 'Ativo' : 'Inativo'}
                 </span>
@@ -459,8 +459,8 @@ export default function DynamicForms() {
                     className="flex items-center gap-1.5 text-sm"
                   >
                     {fieldData.required
-                      ? <ToggleRight className="h-4 w-4 text-primary" />
-                      : <ToggleLeft className="h-4 w-4 text-muted-foreground" />}
+                      ? <ToggleRight className="h-4 w-4 text-green-500" />
+                      : <ToggleLeft className="h-4 w-4 text-red-500" />}
                     <span className={fieldData.required ? 'text-foreground' : 'text-muted-foreground text-xs'}>
                       Obrigatório
                     </span>
