@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Plus, RefreshCw, Building2, CheckCircle, AlertCircle, Loader2,
   Copy, ExternalLink, Trash2, ChevronDown, ChevronUp, Users, ToggleLeft,
-  BarChart3, List, Archive, ArchiveRestore, UploadCloud,
+  BarChart3, List, Archive, ArchiveRestore, UploadCloud, ScrollText, Gauge,
 } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@evoapi/design-system';
 import clientInstancesService, {
@@ -13,8 +13,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import MembersModal from './MembersModal';
 import FeaturesModal from './FeaturesModal';
 import DashboardView from './DashboardView';
+import LogsView from './LogsView';
+import UserMetricsView from './UserMetricsView';
 
-type ViewTab = 'list' | 'dashboard';
+type ViewTab = 'list' | 'dashboard' | 'logs' | 'metrics';
 
 const STATUS_LABEL: Record<string, string> = {
   pending:               'Aguardando',
@@ -466,6 +468,28 @@ export default function ClientInstances() {
             <BarChart3 className="h-3.5 w-3.5" />
             Dashboard
           </button>
+          <button
+            onClick={() => setTab('logs')}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === 'logs'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <ScrollText className="h-3.5 w-3.5" />
+            Logs
+          </button>
+          <button
+            onClick={() => setTab('metrics')}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === 'metrics'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Gauge className="h-3.5 w-3.5" />
+            Métricas de Uso
+          </button>
         </div>
       </div>
 
@@ -530,12 +554,16 @@ export default function ClientInstances() {
               </div>
             )}
           </>
-        ) : (
+        ) : tab === 'dashboard' ? (
           <DashboardView
             data={dashData}
             loading={loadingDash}
             onArchive={handleArchive}
           />
+        ) : tab === 'logs' ? (
+          <div className="h-full"><LogsView /></div>
+        ) : (
+          <div className="h-full"><UserMetricsView /></div>
         )}
       </div>
 

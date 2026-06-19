@@ -6,6 +6,7 @@ import CustomerRoute from './CustomerRoute';
 import SmartRedirect from './SmartRedirect';
 import RouterGuard from '@/guards/RouterGuard';
 import PermissionRoute from './PermissionRoute';
+import GlobalEventTracker from '@/components/GlobalEventTracker';
 
 import MainLayout from '@/components/layout/MainLayout';
 
@@ -149,6 +150,7 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <RouterGuard>
+        <GlobalEventTracker />
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-screen w-full">
