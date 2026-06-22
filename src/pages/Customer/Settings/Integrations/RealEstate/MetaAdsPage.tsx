@@ -26,7 +26,7 @@ export default function MetaAdsPage() {
         {
           key: 'verify_token',
           label: 'Verify Token (webhook)',
-          placeholder: 'chave_flow_meta',
+          placeholder: 'lm_flow_meta',
           hint: 'Token de verificação do webhook. Use o mesmo valor no Meta Webhook → Verify Token.',
         },
       ]}
