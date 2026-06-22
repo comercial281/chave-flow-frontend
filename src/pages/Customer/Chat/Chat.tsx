@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { Suspense, useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 
 import { useParams, useNavigate } from 'react-router-dom';
+import { lazyWithRetry } from '@/utils/chunkReload';
 
 import { useChatContext } from '@/contexts/chat/ChatContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
@@ -44,9 +45,9 @@ import { BaseFilter } from '@/types/core';
 import type { DashboardApp } from '../../../types/integrations';
 import type { AssignmentOption, AssignmentType } from '@/components/chat/assignment';
 
-const ContactSidebar = React.lazy(() => import('@/components/chat/contact-sidebar/ContactSidebar'));
+const ContactSidebar = lazyWithRetry(() => import('@/components/chat/contact-sidebar/ContactSidebar'));
 
-const AssignmentModal = React.lazy(() => import('@/components/chat/assignment/AssignmentModal'));
+const AssignmentModal = lazyWithRetry(() => import('@/components/chat/assignment/AssignmentModal'));
 
 interface SendMessageOptions {
   content: string;

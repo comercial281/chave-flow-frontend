@@ -9,6 +9,7 @@ import App from './App.tsx';
 import { consumeMasterSso } from './utils/masterSso';
 import { initTheme } from './utils/themeUtils';
 import { initGA4 } from './utils/ga4Utils';
+import { reloadForNewVersion } from './utils/chunkReload';
 import * as Sentry from '@sentry/react';
 
 // Registra o Service Worker PWA (atualiza silenciosamente)
@@ -16,30 +17,13 @@ if ('serviceWorker' in navigator) {
   registerSW({ immediate: true });
 }
 
-// Rede de segurança contra "tela branca" pós-deploy: se um chunk lazy falhar ao
-// carregar (hash trocou num deploy novo e o cache aponta pro arquivo antigo, 404),
-// recarrega a página uma única vez pra pegar o index.html/chunks atuais.
-window.addEventListener('vite:preloadError', async () => {
-  // Anti-loop: no máximo 1 recuperação a cada 30s.
-  const last = Number(sessionStorage.getItem('lm_chunk_reloaded') || 0);
-  if (Date.now() - last < 30_000) return;
-  sessionStorage.setItem('lm_chunk_reloaded', String(Date.now()));
-  // Mata o SW antigo + caches: é ele que serve o index.html velho apontando pra
-  // chunks que sumiram no deploy novo (404 -> tela branca). Sem isso, recarregar
-  // pega o mesmo HTML velho e continua branco.
-  try {
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-    if (window.caches) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-  } catch {
-    /* segue pro reload de qualquer forma */
-  }
-  window.location.reload();
+// Rede de segurança global pós-deploy: se um chunk lazy falhar ao carregar
+// (hash trocou num deploy novo / SW serve index.html velho -> 404), recarrega
+// pra pegar o bundle atual. reloadForNewVersion tem trava anti-loop + mata
+// SW/caches. O caminho principal e o lazyWithRetry + ErrorBoundary do app;
+// isto cobre o que escapar pela rede. Mesma trava compartilhada (lm_chunk_reloaded).
+window.addEventListener('vite:preloadError', () => {
+  void reloadForNewVersion();
 });
 
 // LM Flow: Sentry React SDK — Story 1.1
