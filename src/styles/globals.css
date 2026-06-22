@@ -125,6 +125,16 @@
   --chart-5: oklch(0.7 0.14 305);
 }
 
+/* Hover com CONTRASTE real no tema escuro.
+   O design-system aplica `dark:hover:bg-input/50` em select-trigger, input,
+   textarea e botão outline. Com --input escuro (0.18) o passo de alpha 30%→50%
+   somia no fundo (preto no preto). Aqui forçamos um hover sólido e claramente
+   mais claro que a superfície, cobrindo todos esses controles de uma vez. */
+.dark .dark\:hover\:bg-input\/50:hover {
+  background-color: oklch(0.30 0.012 290) !important;
+  border-color: oklch(0.42 0 0) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
