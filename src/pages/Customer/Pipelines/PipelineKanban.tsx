@@ -23,7 +23,6 @@ import {
   ArrowUpDown,
   Phone,
   Mail,
-  MessageSquare,
   User,
   CalendarClock,
   ListTodo,
@@ -1416,8 +1415,11 @@ export default function PipelineKanban() {
                                 <h4 className="text-sm font-semibold text-foreground truncate">
                                   {resolveItemName(item)}
                                 </h4>
-                                <span className="text-xs text-muted-foreground font-medium">
-                                  #{resolveItemRef(item)}
+                                <span
+                                  title={`#${resolveItemRef(item)}`}
+                                  className="shrink-0 text-[10px] text-muted-foreground/60 font-medium"
+                                >
+                                  #{resolveItemRef(item).slice(0, 6)}
                                 </span>
                               </div>
                               {/* Tempo sem contato (medido pela conversa da instância WhatsApp) */}
@@ -1464,8 +1466,8 @@ export default function PipelineKanban() {
                               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                 {item.contact?.phone_number && (
                                   <span className="flex items-center space-x-1">
-                                    <Phone className="w-3 h-3" />
-                                    <span className="truncate max-w-20">
+                                    <Phone className="w-3 h-3 shrink-0" />
+                                    <span className="whitespace-nowrap">
                                       {item.contact.phone_number}
                                     </span>
                                   </span>
@@ -1500,59 +1502,9 @@ export default function PipelineKanban() {
                             </div>
                           )}
 
-                          {/* Last Message Preview */}
-                          {item.conversation?.last_non_activity_message?.content && (
-                            <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border">
-                              <div className="flex items-start space-x-2">
-                                <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center space-x-2 mb-1">
-                                    <span className="text-xs font-medium text-foreground">
-                                      {item.conversation.last_non_activity_message.sender?.name ||
-                                        t('kanban.conversation.system')}
-                                    </span>
-                                  </div>
-                                  <p
-                                    className="text-sm text-foreground line-clamp-2 leading-relaxed [&_p]:inline [&_br]:hidden"
-                                    dangerouslySetInnerHTML={{
-                                      __html:
-                                        item.conversation.last_non_activity_message
-                                          .processed_message_content ||
-                                        item.conversation.last_non_activity_message.content || '',
-                                    }}
-                                  />
-                                  <div className="flex items-center justify-between mt-2">
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(
-                                        typeof item.conversation.last_non_activity_message
-                                          .created_at === 'number'
-                                          ? item.conversation.last_non_activity_message.created_at *
-                                            1000
-                                          : item.conversation.last_non_activity_message.created_at,
-                                      ).toLocaleString('pt-BR', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })}
-                                    </span>
-                                    {item.conversation.last_non_activity_message?.message_type !==
-                                      undefined && (
-                                      <span className="text-xs text-muted-foreground">
-                                        {item.conversation.last_non_activity_message
-                                          .message_type === 0
-                                          ? t('kanban.conversation.incoming', 'Incoming')
-                                          : item.conversation.last_non_activity_message
-                                              .message_type === 1
-                                          ? t('kanban.conversation.outgoing', 'Outgoing')
-                                          : ''}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                          {/* Preview da última mensagem removido do card a pedido
+                              do Giovani: o card mostra só nome, ID curto, telefone
+                              e as tags. O histórico fica no modal de detalhes. */}
 
                           {/* Inbox and Status Row */}
                           <div className="flex items-center justify-between mb-3">
