@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, Globe, ArrowRight, ChevronLeft } from 'lucide-react';
+import { AlertCircle, Globe, ArrowRight, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 
 import { ApiError } from '@/types/auth';
 import { type Locale } from '@/i18n/config';
@@ -126,6 +126,7 @@ export const Auth: React.FC = () => {
   type TabKey = 'login' | 'register' | 'forgot';
   const [activeTab, setActiveTab] = useState<TabKey>('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginPass, setShowLoginPass] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [registerError, setRegisterError] = useState('');
   const [forgotPasswordError, setForgotPasswordError] = useState('');
@@ -183,7 +184,11 @@ export const Auth: React.FC = () => {
   const onLoginSubmit = async (data: LoginFormData) => {
     setIsLoading(true); setLoginError('');
     try {
-      const recaptchaToken = await executeRecaptcha('login');
+      // reCAPTCHA não pode travar o login: nos subdomínios novos (*.lmflow.com.br)
+      // o reCAPTCHA pode falhar por domínio não-registrado. O backend não exige o
+      // token, então se falhar, segue sem ele.
+      let recaptchaToken: string | null = null;
+      try { recaptchaToken = await executeRecaptcha('login'); } catch { recaptchaToken = null; }
       const result = await login({ email: data.email, password: data.password, recaptcha_token: recaptchaToken || undefined });
       if (result.requiresMfa && result.mfaData) {
         const mfaData = result.mfaData as { method: 'totp' | 'email'; tempToken: string; email: string };
@@ -207,7 +212,8 @@ export const Auth: React.FC = () => {
   const onRegisterSubmit = async (data: RegisterFormData) => {
     setIsLoading(true); setRegisterError('');
     try {
-      const recaptchaToken = await executeRecaptcha('register');
+      let recaptchaToken: string | null = null;
+      try { recaptchaToken = await executeRecaptcha('register'); } catch { recaptchaToken = null; }
       await register({ email: data.email, password: data.password, password_confirmation: data.confirmPassword, name: data.fullName, recaptcha_token: recaptchaToken || undefined });
       toast.success(t('auth.register.registrationSuccessful'));
       setActiveTab('login');
@@ -222,7 +228,8 @@ export const Auth: React.FC = () => {
   const onForgotPasswordSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true); setForgotPasswordError('');
     try {
-      const recaptchaToken = await executeRecaptcha('forgot_password');
+      let recaptchaToken: string | null = null;
+      try { recaptchaToken = await executeRecaptcha('forgot_password'); } catch { recaptchaToken = null; }
       await forgotPassword({ email: data.email, recaptcha_token: recaptchaToken || undefined });
       toast.success(t('auth.forgotPassword.emailSent'));
       setActiveTab('login');
@@ -332,11 +339,19 @@ export const Auth: React.FC = () => {
                     ].map(({ i, id, type, label, field }) => (
                       <motion.div key={field} custom={i} variants={fadeUpVariant} initial="hidden" animate="visible" className={fieldCls}>
                         <Label htmlFor={id} className="text-white/70 text-sm">{label}</Label>
-                        <Input
-                          id={id} type={type} placeholder={label} disabled={isLoading}
-                          className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus:border-violet-500/60 focus:ring-violet-500/20"
-                          {...loginForm.register(field)}
-                        />
+                        <div className="relative">
+                          <Input
+                            id={id} type={field === 'password' && showLoginPass ? 'text' : type} placeholder={label} disabled={isLoading}
+                            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus:border-violet-500/60 focus:ring-violet-500/20 pr-10"
+                            {...loginForm.register(field)}
+                          />
+                          {field === 'password' && (
+                            <button type="button" tabIndex={-1} onClick={() => setShowLoginPass(v => !v)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">
+                              {showLoginPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          )}
+                        </div>
                         {loginForm.formState.errors[field] && (
                           <p className={errorCls}>{loginForm.formState.errors[field]?.message}</p>
                         )}
