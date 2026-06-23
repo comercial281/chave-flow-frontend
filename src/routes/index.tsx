@@ -74,6 +74,7 @@ const Monitoring = lazyWithRetry(() => import('@/pages/SuperAdmin/Monitoring'));
 const AutomationTemplatesPage = lazyWithRetry(() => import('@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates'));
 const PooledClients = lazyWithRetry(() => import('@/pages/SuperAdmin/PooledClients'));
 const RoletaConfigPage = lazyWithRetry(() => import('@/pages/Customer/Settings/RoletaConfig/RoletaConfig'));
+const AssignmentSettingsPage = lazyWithRetry(() => import('@/pages/Customer/Settings/AssignmentSettings/AssignmentSettings'));
 const AutomationsLayout = lazyWithRetry(() => import('@/pages/Customer/Automations/AutomationsLayout'));
 const PropertyInterests = lazyWithRetry(() => import('@/pages/Customer/PropertyInterests').then(m => ({ default: m.PropertyInterests })));
 const Macros = lazyWithRetry(() => import('@/pages/Customer/Settings/Macros').then(m => ({ default: m.Macros })));
@@ -582,6 +583,14 @@ const AppRouter = () => {
               element={
                 <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
                   <RoletaConfigPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="assignment-settings"
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+                  <AssignmentSettingsPage />
                 </Suspense>
               }
             />

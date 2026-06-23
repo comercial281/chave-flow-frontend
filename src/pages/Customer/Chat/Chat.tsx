@@ -8,6 +8,7 @@ import { useChatContext } from '@/contexts/chat/ChatContext';
 import { usePermissions } from '@/contexts/PermissionsContext';
 
 import { useLanguage } from '@/hooks/useLanguage';
+import { useConversationPresence } from '@/hooks/useConversationPresence';
 
 // Hooks customizados
 import { useConversationHandlers } from '@/hooks/chat/useConversationHandlers';
@@ -69,6 +70,7 @@ const Chat = () => {
   // Explicitly type conversations to ensure TypeScript recognizes it has 'state'
   const conversations = chatContext.conversations;
   const { messages, selectedConversation, selectedMessages } = chatContext;
+  const { othersPresent } = useConversationPresence(selectedConversation?.id);
 
   // 🔒 RACE CONDITION FIX: Ref para rastrear última conversa carregada
   const lastLoadedConversationRef = useRef<string | null>(null);
@@ -716,6 +718,14 @@ const Chat = () => {
                 onDeleteConversation={handleDeleteConversation}
                 unreadCount={conversations.getUnreadCount(selectedConversation.id) || 0}
               />
+
+              {/* Presença — outro agente está nessa conversa */}
+              {othersPresent.length > 0 && (
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  {othersPresent.map(u => u.name).join(', ')} também {othersPresent.length === 1 ? 'está' : 'estão'} nesta conversa
+                </div>
+              )}
 
               {/* Chat Tabs - Show tabs for conversation type dashboard apps */}
               <ChatTabs

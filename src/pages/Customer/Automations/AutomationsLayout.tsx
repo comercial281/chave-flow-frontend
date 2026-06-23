@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
-import { Zap, Rocket, Code, FileInput, Repeat, Bell, Shuffle } from 'lucide-react';
+import { Zap, Rocket, Code, FileInput, Repeat, Bell, Shuffle, SlidersHorizontal } from 'lucide-react';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
 import type { LucideIcon } from 'lucide-react';
@@ -73,6 +73,13 @@ const SECTORS: Sector[] = [
     name: 'Roleta de Corretores',
     path: '/automations/roleta-config',
     icon: Shuffle,
+    featureKey: 'lead_automations',
+  },
+  {
+    key: 'assignment-settings',
+    name: 'Distribuição de Leads',
+    path: '/automations/assignment-settings',
+    icon: SlidersHorizontal,
     featureKey: 'lead_automations',
   },
 ];

@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { Button } from '@evoapi/design-system/button';
 import { Badge } from '@evoapi/design-system/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@evoapi/design-system/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@evoapi/design-system/select';
-import { Settings, UserPlus, UserMinus, Tag, Zap, Check } from 'lucide-react';
+import { Input } from '@evoapi/design-system/input';
+import { Settings, UserPlus, UserMinus, Tag, Zap, Check, Pencil, X } from 'lucide-react';
 import { toast } from 'sonner';
+import apiAuth from '@/services/core/apiAuth';
 import { Conversation } from '@/types/chat/api';
 import { useConversations } from '@/hooks/chat/useConversations';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -220,6 +222,11 @@ const ConversationActions: React.FC<ConversationActionsProps> = ({
         </CardContent>
       </Card>
 
+      {/* Nome do Atendente nesta Conversa */}
+      {canAssign && (
+        <AgentDisplayNameCard conversation={conversation} />
+      )}
+
       {/* Prioridade da Conversa */}
       <Card className="border-0 shadow-none bg-muted/20">
         <CardHeader className="pb-2">
@@ -271,6 +278,58 @@ const ConversationActions: React.FC<ConversationActionsProps> = ({
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+// Agent Display Name Card
+interface AgentDisplayNameCardProps { conversation: Conversation | null; }
+const AgentDisplayNameCard: React.FC<AgentDisplayNameCardProps> = ({ conversation }) => {
+  const currentName = (conversation?.additional_attributes as any)?.agent_display_name ?? '';
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(currentName);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setValue((conversation?.additional_attributes as any)?.agent_display_name ?? ''); }, [conversation?.additional_attributes]);
+  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+
+  const handleSave = async () => {
+    if (!conversation) return;
+    setSaving(true);
+    try {
+      await apiAuth.patch(`/conversations/${conversation.id}`, { additional_attributes: { agent_display_name: value.trim() } });
+      toast.success('Nome do atendente atualizado');
+      setEditing(false);
+    } catch { toast.error('Erro ao salvar nome'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <Card className="border-0 shadow-none bg-muted/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Pencil className="h-4 w-4" />
+          Nome do atendente (nesta conversa)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {editing ? (
+          <div className="flex gap-2">
+            <Input ref={inputRef} value={value} onChange={e => setValue(e.target.value)}
+              placeholder="Ex: João Silva" className="text-sm h-8 flex-1"
+              onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false); }} />
+            <Button size="sm" className="h-8 px-2" onClick={handleSave} disabled={saving}><Check className="h-3 w-3" /></Button>
+            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => setEditing(false)}><X className="h-3 w-3" /></Button>
+          </div>
+        ) : (
+          <button onClick={() => setEditing(true)} className="w-full text-left flex items-center justify-between gap-2 p-2 rounded hover:bg-muted/50 transition-colors">
+            <span className="text-sm text-muted-foreground">{currentName || 'Clique para definir um nome'}</span>
+            <Pencil className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+          </button>
+        )}
+        <p className="text-xs text-muted-foreground mt-1">Aparece acima das mensagens enviadas nesta conversa</p>
+      </CardContent>
+    </Card>
   );
 };
 
