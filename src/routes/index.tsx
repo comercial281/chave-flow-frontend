@@ -13,6 +13,7 @@ import MainLayout from '@/components/layout/MainLayout';
 
 // Páginas públicas
 import Auth from '@/pages/Auth';
+import SsoEntry from '@/pages/Auth/SsoEntry';
 import EmailConfirmation from '@/components/auth/EmailConfirmation';
 import ResetPassword from '@/components/auth/ResetPassword';
 import InstagramCallback from '@/pages/InstagramCallback';
@@ -181,6 +182,9 @@ const AppRouter = () => {
               </PublicRoute>
             }
           />
+
+          {/* SaaS: entrada SSO 1-clique (super-admin -> CRM do cliente) */}
+          <Route path="/sso" element={<SsoEntry />} />
 
           {/* SaaS: cadastro self-serve (apex lmflow.com.br) */}
           <Route
