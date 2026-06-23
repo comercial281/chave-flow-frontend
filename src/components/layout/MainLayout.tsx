@@ -24,6 +24,8 @@ import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useMenuState } from '@/hooks/useMenuState';
 import { useDashboardApps } from '@/hooks/useDashboardApps';
 import { injectDashboardAppsIntoMenu } from '@/utils/injectDashboardApps';
+import { applyMenuPrefs, MENU_PREFS_EVENT } from './config/menuPrefs';
+import MenuCustomizer from './components/MenuCustomizer';
 import { WelcomeTourModal } from '@/components/WelcomeTourModal';
 import GlobalCommandPalette from '@/components/command-palette/GlobalCommandPalette';
 
@@ -38,6 +40,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { features: tenantFeatures } = useTenantFeatures();
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuPrefsVersion, setMenuPrefsVersion] = useState(0);
+  const [showMenuCustomizer, setShowMenuCustomizer] = useState(false);
+
+  useEffect(() => {
+    const onPrefs = () => setMenuPrefsVersion(v => v + 1);
+    window.addEventListener(MENU_PREFS_EVENT, onPrefs);
+    return () => window.removeEventListener(MENU_PREFS_EVENT, onPrefs);
+  }, []);
   const pathname = location.pathname;
 
   // Estados do layout
@@ -82,7 +92,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return getCustomerMenuItems(t);
   }, [t]);
 
-  const menuItems = useMemo(() => {
+  // Itens permitidos (filtrados por permissão) — usados pelo editor de menu.
+  const permittedMenuItems = useMemo(() => {
     const rawMenuItems = getMenuItems();
     let finalItems = filterMenuItemsByPermissions(rawMenuItems, can, canAny, canAll, user?.role?.key, user?.email, tenantFeatures);
 
@@ -92,6 +103,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
     return finalItems;
   }, [getMenuItems, can, canAny, canAll, dashboardApps, user?.role?.key, user?.email, tenantFeatures]);
+
+  // Aplica as preferências do usuário (esconder/favoritar/ordenar) por cima.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const menuItems = useMemo(() => applyMenuPrefs(permittedMenuItems), [permittedMenuItems, menuPrefsVersion]);
 
   // Use the custom menu state hook
   const menuState = useMenuState(menuItems, setIsMobileMenuOpen);
@@ -153,6 +168,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           isMenuWithSubItemsActive={menuState.isMenuWithSubItemsActive}
           handleMenuClick={menuState.handleMenuClick}
           setActiveSubmenu={menuState.setActiveSubmenu}
+          onCustomizeMenu={() => setShowMenuCustomizer(true)}
         />
 
         {/* Main Content */}
@@ -189,6 +205,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Personalizar menu */}
+      {showMenuCustomizer && (
+        <MenuCustomizer items={permittedMenuItems} onClose={() => setShowMenuCustomizer(false)} />
+      )}
     </div>
   );
 }
