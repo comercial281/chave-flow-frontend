@@ -72,6 +72,7 @@ const PropertyCaptureRequests = lazyWithRetry(() => import('@/pages/Customer/Pro
 const ClientInstances = lazyWithRetry(() => import('@/pages/SuperAdmin/ClientInstances'));
 const Monitoring = lazyWithRetry(() => import('@/pages/SuperAdmin/Monitoring'));
 const AutomationTemplatesPage = lazyWithRetry(() => import('@/pages/SuperAdmin/AutomationTemplates/AutomationTemplates'));
+const PooledClients = lazyWithRetry(() => import('@/pages/SuperAdmin/PooledClients'));
 const RoletaConfigPage = lazyWithRetry(() => import('@/pages/Customer/Settings/RoletaConfig/RoletaConfig'));
 const AutomationsLayout = lazyWithRetry(() => import('@/pages/Customer/Automations/AutomationsLayout'));
 const PropertyInterests = lazyWithRetry(() => import('@/pages/Customer/PropertyInterests').then(m => ({ default: m.PropertyInterests })));
@@ -1718,6 +1719,18 @@ const AppRouter = () => {
               <PrivateRoute>
                 <MainLayout>
                   <AutomationTemplatesPage />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Super Admin — painel SaaS pooled (Entrar 1-clique, membros, senhas) */}
+          <Route
+            path="/super-admin/pooled-clients"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <PooledClients />
                 </MainLayout>
               </PrivateRoute>
             }

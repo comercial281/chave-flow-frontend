@@ -228,6 +228,13 @@ export const getCustomerMenuItems = (t: (key: string) => string): MenuItem[] => 
     rootTenantOnly: true,
   },
   {
+    name: 'Clientes (SaaS)',
+    href: '/super-admin/pooled-clients',
+    icon: Building2,
+    requiredEmail: 'comercial@lealmidia.com.br',
+    rootTenantOnly: true,
+  },
+  {
     name: 'Monitoramento',
     href: '/super-admin/monitoring',
     icon: Activity,
