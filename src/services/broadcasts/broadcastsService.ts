@@ -10,6 +10,19 @@ export interface BroadcastVariation {
   media_url?: string;
 }
 
+// Item de uma SEQUÊNCIA de disparo (mesmo shape do funil de mensagens).
+// Substitui as antigas "variações" A/B: o disparo manda os N itens em ordem,
+// com delay por item, por destinatário. Ver MessageSequenceEditor.
+export interface BroadcastSequenceItem {
+  position: number;
+  kind: 'text' | 'audio' | 'image' | 'video' | 'document';
+  text_content: string | null;
+  media_url: string | null;
+  media_caption: string | null;
+  media_filename: string | null;
+  delay_seconds: number;
+}
+
 export interface BroadcastCampaign {
   id: string;
   name: string;
@@ -42,7 +55,10 @@ export interface CreateBroadcastPayload {
   name?: string;
   pipeline_id: string;
   audience: BroadcastAudience;
-  variations: BroadcastVariation[];
+  /** Sequência de itens (modo novo, unificado com o funil). */
+  funnel_items?: BroadcastSequenceItem[];
+  /** Variações A/B legadas (mantido só pra compat de campanhas antigas). */
+  variations?: BroadcastVariation[];
   min_interval_seconds: number;
   max_interval_seconds: number;
   batch_size: number;
@@ -99,6 +115,11 @@ class BroadcastsService {
       text: variation.text,
       media_url: variation.media_url,
     });
+  }
+
+  // Manda a SEQUÊNCIA inteira só pra um número de teste (sem criar campanha).
+  async testSendSequence(phone: string, items: BroadcastSequenceItem[]): Promise<void> {
+    await api.post(`${this.base}/test_send`, { phone, funnel_items: items });
   }
 }
 

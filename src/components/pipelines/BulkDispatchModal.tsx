@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,34 +22,31 @@ import {
   MessageSquareText,
   Clock,
   ListChecks,
-  Plus,
-  Trash2,
   Loader2,
   CheckCircle2,
   Pause,
   Play,
   Ban,
   ChevronLeft,
-  Image as ImageIcon,
-  Mic,
-  Video,
-  Upload,
   Send,
   Paperclip,
-  Save,
-  Bookmark,
-  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PipelineStage } from '@/types/analytics';
 import {
   broadcastsService,
   BroadcastCampaign,
-  BroadcastVariation,
+  BroadcastSequenceItem,
   AudienceMode,
 } from '@/services/broadcasts/broadcastsService';
 import { labelsService } from '@/services/contacts/labelsService';
 import type { Label as LabelType } from '@/types/settings';
+import { tenantTemplateVariablesService } from '@/services/messageFunnels/messageFunnelsService';
+import type { TemplateVariable } from '@/types/messageFunnels';
+import MessageSequenceEditor, {
+  type SequenceDraftItem,
+  newSequenceItem,
+} from '@/components/messaging/MessageSequenceEditor';
 
 interface BulkDispatchModalProps {
   open: boolean;
@@ -62,9 +59,6 @@ interface BulkDispatchModalProps {
 type Step = 'audience' | 'messages' | 'cadence' | 'review' | 'creating' | 'done';
 type View = 'new' | 'list';
 
-const textareaCls =
-  'w-full min-h-[90px] rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y';
-
 const STATUS_META: Record<BroadcastCampaign['status'], { label: string; cls: string }> = {
   running: { label: 'Enviando', cls: 'bg-primary/15 text-primary border-primary/40' },
   paused: { label: 'Pausado', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -73,34 +67,34 @@ const STATUS_META: Record<BroadcastCampaign['status'], { label: string; cls: str
   failed: { label: 'Falhou', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
 
-function preview(text: string, name = 'Giovani') {
-  return text.replace(/\{\{?\s*nome\s*\}?\}/gi, name);
-}
-
-const KINDS: { kind: BroadcastVariation['kind']; label: string; icon: typeof Mic }[] = [
-  { kind: 'text', label: 'Texto', icon: MessageSquareText },
-  { kind: 'image', label: 'Imagem', icon: ImageIcon },
-  { kind: 'audio', label: 'Áudio', icon: Mic },
-  { kind: 'video', label: 'Vídeo', icon: Video },
-];
-
-const KIND_LABEL: Record<BroadcastVariation['kind'], string> = {
+const KIND_LABEL: Record<SequenceDraftItem['kind'], string> = {
   text: 'Texto',
   image: 'Imagem',
   audio: 'Áudio',
   video: 'Vídeo',
+  document: 'Documento',
 };
 
-function acceptFor(kind: BroadcastVariation['kind']) {
-  if (kind === 'image') return 'image/*';
-  if (kind === 'audio') return 'audio/*';
-  if (kind === 'video') return 'video/*';
-  return '*/*';
+// Preview substituindo {{nome}} por um exemplo só na revisão.
+function preview(text: string, name = 'Giovani') {
+  return text.replace(/\{\{?\s*nome\s*\}?\}/gi, name);
 }
 
-function isVariationValid(v: BroadcastVariation) {
-  if (v.kind === 'text') return v.text.trim() !== '';
-  return (v.media_url || '').trim() !== ''; // imagem/áudio/vídeo precisam de arquivo
+function itemIsValid(it: SequenceDraftItem) {
+  return it.kind === 'text' ? (it.text_content ?? '').trim() !== '' : !!it.media_url;
+}
+
+// Converte os itens do editor no payload de sequência do backend.
+function toSequencePayload(items: SequenceDraftItem[]): BroadcastSequenceItem[] {
+  return items.map((it, idx) => ({
+    position: idx,
+    kind: it.kind,
+    text_content: it.text_content,
+    media_url: it.media_url,
+    media_caption: it.media_caption,
+    media_filename: it.media_filename,
+    delay_seconds: it.delay_seconds,
+  }));
 }
 
 export default function BulkDispatchModal({
@@ -121,50 +115,9 @@ export default function BulkDispatchModal({
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [countingAudience, setCountingAudience] = useState(false);
 
-  // Mensagens
-  const [variations, setVariations] = useState<BroadcastVariation[]>([{ kind: 'text', text: '' }]);
-
-  // Modelos de envio salvos (reutilizáveis). Guardados no navegador — por enquanto
-  // por dispositivo; dá pra promover a compartilhado no backend depois.
-  const TPL_KEY = 'lmflow:broadcast-msg-templates';
-  const [msgTemplates, setMsgTemplates] = useState<{ name: string; variations: BroadcastVariation[] }[]>([]);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(TPL_KEY);
-      if (raw) setMsgTemplates(JSON.parse(raw));
-    } catch {
-      /* localStorage indisponível */
-    }
-  }, []);
-  const persistTemplates = (list: { name: string; variations: BroadcastVariation[] }[]) => {
-    setMsgTemplates(list);
-    try {
-      localStorage.setItem(TPL_KEY, JSON.stringify(list));
-    } catch {
-      /* ignore */
-    }
-  };
-  const saveCurrentAsTemplate = () => {
-    if (!variations.some(v => v.text?.trim() || v.media_url)) {
-      toast.error('Escreva a mensagem antes de salvar o modelo.');
-      return;
-    }
-    const name = window.prompt('Nome do modelo:')?.trim();
-    if (!name) return;
-    const next = [
-      ...msgTemplates.filter(t => t.name !== name),
-      { name, variations: JSON.parse(JSON.stringify(variations)) },
-    ];
-    persistTemplates(next);
-    toast.success('Modelo salvo');
-  };
-  const applyTemplate = (tpl: { name: string; variations: BroadcastVariation[] }) => {
-    setVariations(
-      tpl.variations?.length ? JSON.parse(JSON.stringify(tpl.variations)) : [{ kind: 'text', text: '' }],
-    );
-    toast.success(`Modelo "${tpl.name}" aplicado`);
-  };
-  const deleteTemplate = (name: string) => persistTemplates(msgTemplates.filter(t => t.name !== name));
+  // Mensagem (sequência multi-item — MESMO editor do funil)
+  const [items, setItems] = useState<SequenceDraftItem[]>([newSequenceItem()]);
+  const [variables, setVariables] = useState<TemplateVariable[]>([]);
 
   // Cadência
   const [minS, setMinS] = useState(4);
@@ -173,10 +126,7 @@ export default function BulkDispatchModal({
   const [pauseS, setPauseS] = useState(60);
   const [businessHours, setBusinessHours] = useState(true);
 
-  // Mídia + teste
-  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-  const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const textRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  // Teste
   const [testPhone, setTestPhone] = useState('');
   const [testing, setTesting] = useState(false);
 
@@ -190,7 +140,7 @@ export default function BulkDispatchModal({
     setStageId('');
     setSelectedLabels([]);
     setRecipientCount(null);
-    setVariations([{ kind: 'text', text: '' }]);
+    setItems([newSequenceItem()]);
     setMinS(4);
     setMaxS(8);
     setBatchSize(10);
@@ -210,7 +160,7 @@ export default function BulkDispatchModal({
     }
   }, [pipelineId]);
 
-  // Ao abrir: carrega campanhas e decide a view inicial.
+  // Ao abrir: carrega campanhas + variáveis do tenant e decide a view inicial.
   useEffect(() => {
     if (!open) return;
     resetWizard();
@@ -218,11 +168,31 @@ export default function BulkDispatchModal({
       const hasActive = list.some(c => c.status === 'running' || c.status === 'paused');
       setView(hasActive ? 'list' : 'new');
     });
-    // Etiquetas disponíveis pra segmentar por tag.
     labelsService
       .getLabels()
       .then(res => setAvailableLabels(Array.isArray(res.data) ? (res.data as LabelType[]) : []))
       .catch(() => setAvailableLabels([]));
+    tenantTemplateVariablesService
+      .list()
+      .then(res => {
+        setVariables([
+          ...res.builtin,
+          ...res.custom.map(v => ({
+            token: v.token,
+            placeholder: v.placeholder,
+            label: v.label,
+            description: v.description,
+            builtin: false,
+          })),
+        ]);
+      })
+      .catch(() =>
+        setVariables([
+          { token: 'nome', placeholder: '{{nome}}', label: 'Nome', builtin: true },
+          { token: 'telefone', placeholder: '{{telefone}}', label: 'Telefone', builtin: true },
+          { token: 'email', placeholder: '{{email}}', label: 'E-mail', builtin: true },
+        ]),
+      );
   }, [open, refreshList, resetWizard]);
 
   // Conta destinatários quando a audiência muda (só na view de criação).
@@ -256,62 +226,24 @@ export default function BulkDispatchModal({
     };
   }, [open, view, pipelineId, audienceMode, stageId, audiencePayload]);
 
-  const validVariations = useMemo(() => variations.filter(isVariationValid), [variations]);
+  const itemsValid = useMemo(() => items.length > 0 && items.every(itemIsValid), [items]);
 
   const step1Ok = (recipientCount ?? 0) > 0;
-  const step2Ok = validVariations.length > 0 && validVariations.length === variations.length;
+  const step2Ok = itemsValid;
   const step3Ok = minS >= 2 && maxS >= minS && batchSize >= 1 && batchSize <= 50 && pauseS >= 10;
+
+  const sumItemDelays = useMemo(
+    () => items.reduce((acc, it) => acc + (it.delay_seconds || 0), 0),
+    [items],
+  );
 
   const estDurationMin = useMemo(() => {
     const n = recipientCount ?? 0;
     if (!n) return 0;
     const avg = (minS + maxS) / 2;
     const pauses = Math.max(0, Math.ceil(n / batchSize) - 1);
-    return Math.round((n * avg + pauses * pauseS) / 60);
-  }, [recipientCount, minS, maxS, batchSize, pauseS]);
-
-  const updateVariation = (i: number, patch: Partial<BroadcastVariation>) =>
-    setVariations(vs => vs.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
-  const addVariation = () =>
-    setVariations(vs => (vs.length >= 4 ? vs : [...vs, { kind: 'text', text: '' }]));
-  const removeVariation = (i: number) =>
-    setVariations(vs => (vs.length <= 1 ? vs : vs.filter((_, idx) => idx !== i)));
-
-  // Insere a variável (ex: {{nome}}) na posição do cursor do textarea da versão i.
-  const insertVariable = (i: number, token: string) => {
-    const el = textRefs.current[i];
-    const cur = variations[i]?.text || '';
-    if (!el) {
-      updateVariation(i, { text: cur + token });
-      return;
-    }
-    const start = el.selectionStart ?? cur.length;
-    const end = el.selectionEnd ?? cur.length;
-    updateVariation(i, { text: cur.slice(0, start) + token + cur.slice(end) });
-    requestAnimationFrame(() => {
-      el.focus();
-      const pos = start + token.length;
-      el.setSelectionRange(pos, pos);
-    });
-  };
-
-  const handleUpload = async (i: number, file?: File) => {
-    if (!file) return;
-    if (file.size > 16 * 1024 * 1024) {
-      toast.error('Arquivo muito grande (máx. 16MB).');
-      return;
-    }
-    setUploadingIdx(i);
-    try {
-      const { url } = await broadcastsService.uploadMedia(file);
-      updateVariation(i, { media_url: url });
-      toast.success('Arquivo anexado.');
-    } catch {
-      toast.error('Não consegui enviar o arquivo.');
-    } finally {
-      setUploadingIdx(null);
-    }
-  };
+    return Math.round((n * (avg + sumItemDelays) + pauses * pauseS) / 60);
+  }, [recipientCount, minS, maxS, batchSize, pauseS, sumItemDelays]);
 
   const handleTest = async () => {
     const phone = testPhone.replace(/\D/g, '');
@@ -319,14 +251,13 @@ export default function BulkDispatchModal({
       toast.error('Número inválido (use DDD + número, ex: 5511999999999).');
       return;
     }
-    const v = validVariations[0];
-    if (!v) {
-      toast.error('Escreva a mensagem antes de testar.');
+    if (!itemsValid) {
+      toast.error('Monte a sequência antes de testar.');
       return;
     }
     setTesting(true);
     try {
-      await broadcastsService.testSend(phone, v);
+      await broadcastsService.testSendSequence(phone, toSequencePayload(items));
       toast.success('Teste enviado! Confere o WhatsApp.');
     } catch (err: any) {
       toast.error(err?.response?.data?.errors?.[0] || 'Falha ao enviar o teste.');
@@ -352,7 +283,7 @@ export default function BulkDispatchModal({
           stage_id: audienceMode === 'stage' ? stageId : undefined,
           labels: audienceMode === 'tag' ? selectedLabels : undefined,
         },
-        variations: validVariations.map(v => ({ kind: v.kind, text: v.text, media_url: v.media_url })),
+        funnel_items: toSequencePayload(items),
         min_interval_seconds: minS,
         max_interval_seconds: maxS,
         batch_size: batchSize,
@@ -412,7 +343,7 @@ export default function BulkDispatchModal({
           </div>
           <DialogDescription>
             {view === 'new'
-              ? 'Escolha quem recebe, escreva a mensagem (pode variar até 4 versões), ajuste o ritmo e dispare.'
+              ? 'Escolha quem recebe, monte a sequência de mensagens, ajuste o ritmo e dispare.'
               : 'Acompanhe, pause, retome ou cancele os disparos deste pipeline.'}
           </DialogDescription>
         </DialogHeader>
@@ -598,163 +529,27 @@ export default function BulkDispatchModal({
               </div>
             )}
 
-            {/* STEP 2 — Mensagens */}
+            {/* STEP 2 — Mensagem (sequência) */}
             {step === 'messages' && (
               <div className="space-y-4 py-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm flex items-center gap-1.5">
-                    <MessageSquareText className="w-4 h-4" /> Mensagem(ns)
+                    <MessageSquareText className="w-4 h-4" /> Sequência de mensagens
                   </Label>
                   <span className="text-xs text-muted-foreground">
-                    Use <code className="text-primary">{'{{nome}}'}</code> pro primeiro nome do lead
+                    Cada lead recebe os itens em ordem
                   </span>
                 </div>
 
-                {/* Modelos de envio: salvar o que está escrito e reaproveitar depois */}
-                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border p-2">
-                  <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                    <Bookmark className="w-3.5 h-3.5" /> Modelos
-                  </span>
-                  {msgTemplates.length === 0 && (
-                    <span className="text-xs text-muted-foreground">nenhum salvo ainda</span>
-                  )}
-                  {msgTemplates.map(tpl => (
-                    <span
-                      key={tpl.name}
-                      className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => applyTemplate(tpl)}
-                        className="hover:text-primary"
-                        title="Aplicar este modelo"
-                      >
-                        {tpl.name}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteTemplate(tpl.name)}
-                        className="text-muted-foreground hover:text-destructive"
-                        title="Excluir modelo"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={saveCurrentAsTemplate}
-                    className="ml-auto h-7"
-                  >
-                    <Save className="w-3.5 h-3.5 mr-1" /> Salvar modelo
-                  </Button>
-                </div>
-                {variations.map((v, i) => (
-                  <div key={i} className="space-y-2 border border-border rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Versão {i + 1}
-                        {variations.length > 1 && ' (alternadas entre os contatos)'}
-                      </span>
-                      {variations.length > 1 && (
-                        <button
-                          onClick={() => removeVariation(i)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
+                <MessageSequenceEditor
+                  items={items}
+                  onChange={setItems}
+                  variables={variables}
+                  uploadMedia={broadcastsService.uploadMedia.bind(broadcastsService)}
+                />
 
-                    {/* tipo de mensagem */}
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {KINDS.map(k => {
-                        const Icon = k.icon;
-                        const active = v.kind === k.kind;
-                        return (
-                          <button
-                            key={k.kind}
-                            onClick={() => updateVariation(i, { kind: k.kind })}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs border transition-colors ${
-                              active
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'border-border text-muted-foreground hover:bg-muted'
-                            }`}
-                          >
-                            <Icon className="w-3.5 h-3.5" />
-                            {k.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* texto (ou legenda da mídia); áudio não tem texto */}
-                    {v.kind !== 'audio' && (
-                      <>
-                        <textarea
-                          ref={el => {
-                            textRefs.current[i] = el;
-                          }}
-                          value={v.text}
-                          onChange={e => updateVariation(i, { text: e.target.value })}
-                          placeholder={
-                            v.kind === 'text' ? 'Oi {{nome}}, tudo bem? ...' : 'Legenda (opcional)'
-                          }
-                          className={textareaCls}
-                        />
-                        {/* Inserir variável clicando (vai pro cursor) */}
-                        <button
-                          type="button"
-                          onClick={() => insertVariable(i, '{{nome}}')}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          <Plus className="w-3 h-3" /> {'{{nome}}'}
-                        </button>
-                      </>
-                    )}
-
-                    {/* upload de mídia (imagem/áudio/vídeo) */}
-                    {v.kind !== 'text' && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          ref={el => {
-                            fileRefs.current[i] = el;
-                          }}
-                          type="file"
-                          accept={acceptFor(v.kind)}
-                          className="hidden"
-                          onChange={e => handleUpload(i, e.target.files?.[0])}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fileRefs.current[i]?.click()}
-                          disabled={uploadingIdx === i}
-                        >
-                          {uploadingIdx === i ? (
-                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                          ) : (
-                            <Upload className="w-4 h-4 mr-1" />
-                          )}
-                          {v.media_url ? 'Trocar arquivo' : 'Enviar arquivo'}
-                        </Button>
-                        {v.media_url && (
-                          <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> anexado
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {variations.length < 4 && (
-                  <Button variant="outline" size="sm" onClick={addVariation}>
-                    <Plus className="w-4 h-4 mr-1" /> Adicionar variação
-                  </Button>
-                )}
                 <p className="text-xs text-muted-foreground">
-                  Variar a mensagem reduz a chance de o WhatsApp marcar como spam.
+                  Use as variáveis pra personalizar (ex: {'{{nome}}'}); a mídia é anexada na hora.
                 </p>
               </div>
             )}
@@ -842,8 +637,8 @@ export default function BulkDispatchModal({
                     <strong>{recipientCount}</strong>
                   </div>
                   <div className="flex justify-between p-2.5">
-                    <span className="text-muted-foreground">Versões de mensagem</span>
-                    <strong>{validVariations.length}</strong>
+                    <span className="text-muted-foreground">Itens na sequência</span>
+                    <strong>{items.length}</strong>
                   </div>
                   <div className="flex justify-between p-2.5">
                     <span className="text-muted-foreground">Ritmo</span>
@@ -857,21 +652,22 @@ export default function BulkDispatchModal({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {validVariations.map((v, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap">
+                  {items.map((it, i) => (
+                    <div key={it.uiKey} className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap">
                       <span className="text-xs text-muted-foreground block mb-1">
-                        Versão {i + 1} · {KIND_LABEL[v.kind]}
+                        #{i + 1} · {KIND_LABEL[it.kind]}
+                        {it.delay_seconds > 0 && ` · aguarda ${it.delay_seconds}s`}
                       </span>
-                      {v.kind !== 'text' && (
+                      {it.kind !== 'text' && (
                         <span className="text-xs text-primary flex items-center gap-1 mb-1">
                           <Paperclip className="w-3 h-3" /> mídia anexada
                         </span>
                       )}
-                      {v.text ? (
-                        preview(v.text)
-                      ) : (
-                        <span className="text-muted-foreground italic">(sem legenda)</span>
-                      )}
+                      {it.kind === 'text'
+                        ? preview(it.text_content ?? '')
+                        : it.media_caption
+                          ? preview(it.media_caption)
+                          : <span className="text-muted-foreground italic">(sem legenda)</span>}
                     </div>
                   ))}
                 </div>
@@ -899,7 +695,7 @@ export default function BulkDispatchModal({
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Manda a Versão 1 só pra esse número, sem tocar nos leads.
+                    Manda a sequência inteira só pra esse número, sem tocar nos leads.
                   </p>
                 </div>
               </div>
