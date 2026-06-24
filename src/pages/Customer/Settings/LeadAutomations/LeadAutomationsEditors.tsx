@@ -20,7 +20,9 @@ import {
   type LeadAutomationAction,
   type AdOrigin,
   type FormOrigin,
+  type EvolutionInstance,
 } from '@/services/leadAutomation/leadAutomationService';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
 
 // ============================================================================
 // Catálogos por gatilho/ação
@@ -76,11 +78,13 @@ export interface AutomationResources {
   adOrigins: AdOrigin[];
   formOrigins: FormOrigin[];
   messageFunnels: MessageFunnel[];
+  evolutionInstances: EvolutionInstance[];
   reloadFunnels: () => void;
   loading: boolean;
 }
 
 export function useAutomationResources(enabled: boolean): AutomationResources {
+  const isSuperAdmin = useIsSuperAdmin();
   const [labels, setLabels] = useState<ContactLabel[]>([]);
   const [sequences, setSequences] = useState<FollowupSequence[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -90,6 +94,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
   const [adOrigins, setAdOrigins] = useState<AdOrigin[]>([]);
   const [formOrigins, setFormOrigins] = useState<FormOrigin[]>([]);
   const [messageFunnels, setMessageFunnels] = useState<MessageFunnel[]>([]);
+  const [evolutionInstances, setEvolutionInstances] = useState<EvolutionInstance[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Recarrega a lista de funis (usado após criar/editar um funil dentro da automação).
@@ -105,7 +110,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
     setLoading(true);
 
     (async () => {
-      const [labelsRes, seqRes, usersRes, pipelinesRes, qrRes, adRes, formRes, funnelsRes] = await Promise.allSettled([
+      const [labelsRes, seqRes, usersRes, pipelinesRes, qrRes, adRes, formRes, funnelsRes, evoRes] = await Promise.allSettled([
         labelsService.getLabels(),
         followupSequencesService.getAll(),
         usersService.getUsers(),
@@ -114,6 +119,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
         leadAutomationService.getAdOrigins(),
         leadAutomationService.getFormOrigins(),
         messageFunnelsService.list({ activeOnly: false }),
+        isSuperAdmin ? leadAutomationService.getEvolutionInstances() : Promise.resolve([]),
       ]);
 
       if (cancelled) return;
@@ -125,6 +131,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
       if (adRes.status === 'fulfilled') setAdOrigins(adRes.value ?? []);
       if (formRes.status === 'fulfilled') setFormOrigins(formRes.value ?? []);
       if (funnelsRes.status === 'fulfilled') setMessageFunnels(funnelsRes.value ?? []);
+      if (evoRes.status === 'fulfilled') setEvolutionInstances(evoRes.value ?? []);
 
       if (pipelinesRes.status === 'fulfilled') {
         const list = pipelinesRes.value.data ?? [];
@@ -147,7 +154,7 @@ export function useAutomationResources(enabled: boolean): AutomationResources {
     return () => { cancelled = true; };
   }, [enabled]);
 
-  return { labels, sequences, users, pipelines, stagesByPipeline, quickReplies, adOrigins, formOrigins, messageFunnels, reloadFunnels, loading };
+  return { labels, sequences, users, pipelines, stagesByPipeline, quickReplies, adOrigins, formOrigins, messageFunnels, evolutionInstances, reloadFunnels, loading };
 }
 
 // ============================================================================
@@ -448,6 +455,7 @@ export function ActionEditor({ action, onChange, resources }: ActionEditorProps)
     onChange({ ...action, params: { ...params, [key]: value } });
   const appendToParam = (key: string, token: string) =>
     setParam(key, `${String(params[key] ?? '')}${token}`);
+  const isSuperAdmin = useIsSuperAdmin();
 
   // Grupos de WhatsApp pro dropdown do "Notificar grupo" (carrega da instância escolhida).
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
@@ -563,16 +571,42 @@ export function ActionEditor({ action, onChange, resources }: ActionEditorProps)
     // ----- send_whatsapp_message -----
     case 'send_whatsapp_message':
       return (
-        <Field label="Mensagem *" hint="Toque numa variável pra inserir. No envio ela vira o dado real do lead.">
-          <Textarea
-            value={String(params.message ?? '')}
-            onChange={e => setParam('message', e.target.value)}
-            placeholder="Olá {{nome}}, tudo bem?"
-            rows={3}
-            className="mt-1 resize-none"
-          />
-          <VariableChips onInsert={tok => appendToParam('message', tok)} />
-        </Field>
+        <>
+          <Field label="Mensagem *" hint="Toque numa variável pra inserir. No envio ela vira o dado real do lead.">
+            <Textarea
+              value={String(params.message ?? '')}
+              onChange={e => setParam('message', e.target.value)}
+              placeholder="Olá {{nome}}, tudo bem?"
+              rows={3}
+              className="mt-1 resize-none"
+            />
+            <VariableChips onInsert={tok => appendToParam('message', tok)} />
+          </Field>
+          {isSuperAdmin && resources.evolutionInstances.length > 0 && (
+            <Field
+              label="Instância de envio (admin)"
+              hint="Só você vê este campo. Deixe em branco para usar a instância padrão do cliente."
+            >
+              <select
+                value={String(params.sender_instance ?? '')}
+                onChange={e => setParam('sender_instance', e.target.value)}
+                className={baseSelectClass}
+              >
+                <option value="">— Padrão do cliente —</option>
+                {resources.evolutionInstances.map(inst => (
+                  <option key={inst.name} value={inst.name}>
+                    {inst.name} {inst.status === 'open' ? '✓' : `(${inst.status})`}
+                  </option>
+                ))}
+              </select>
+              {params.sender_instance && (
+                <p className="text-xs text-amber-500 mt-1">
+                  ⚠️ Mensagem enviada pelo número da instância selecionada, não pelo número do cliente.
+                </p>
+              )}
+            </Field>
+          )}
+        </>
       );
 
     // ----- send_audio / send_image / send_video -----

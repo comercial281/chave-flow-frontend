@@ -93,11 +93,25 @@ export const leadAutomationService = {
     const res = await api.get(`${BASE}/groups`, { params: instance ? { instance } : {} });
     return (res.data as { data: { groups: WaGroup[] } }).data?.groups ?? [];
   },
+
+  // Instâncias Evolution disponíveis (super-admin only). Usadas no seletor "Instância de envio".
+  async getEvolutionInstances(): Promise<EvolutionInstance[]> {
+    const res = await api.get('/super/evolution_instances');
+    return (res.data as { data: EvolutionInstance[] }).data ?? [];
+  },
 };
 
 export interface WaGroup {
   id: string;   // JID …@g.us
   name: string;
+}
+
+// Instância Evolution listada pelo endpoint global (super-admin only).
+export interface EvolutionInstance {
+  name: string;
+  status: string;   // "open" | "connecting" | "close"
+  number: string;
+  token: string;
 }
 
 // Anúncio de origem agregado (vindo do ad_referral das conversas/contatos).
