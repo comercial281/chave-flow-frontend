@@ -22,12 +22,29 @@ function MembersModal({ tenant, onClose }: { tenant: PooledTenant; onClose: () =
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newPwd, setNewPwd] = useState('');
 
-  useEffect(() => {
+  const loadMembers = () =>
     api.get(`/super/pooled_tenants/${tenant.id}/members`)
       .then(r => setMembers(r.data?.data || []))
       .finally(() => setLoading(false));
-  }, [tenant.id]);
+
+  useEffect(() => { loadMembers(); }, [tenant.id]);
+
+  const addMember = async () => {
+    if (!newEmail.trim() || newPwd.length < 8) { alert('Informe e-mail e senha de ao menos 8 caracteres.'); return; }
+    setAdding(true);
+    try {
+      await api.post(`/super/pooled_tenants/${tenant.id}/add_member`, { email: newEmail.trim(), name: newName.trim(), password: newPwd });
+      alert(`Acesso criado para ${newEmail.trim()} em ${tenant.slug}.lmflow.com.br`);
+      setNewEmail(''); setNewName(''); setNewPwd('');
+      setLoading(true); await loadMembers();
+    } catch (e: any) { alert(e?.response?.data?.error || 'Falha ao criar acesso.'); }
+    finally { setAdding(false); }
+  };
 
   const setPassword = async (m: Member) => {
     const pwd = window.prompt(`Nova senha para ${m.email} (min. 8 caracteres):`);
@@ -70,6 +87,27 @@ function MembersModal({ tenant, onClose }: { tenant: PooledTenant; onClose: () =
               </button>
             </div>
           ))}
+        </div>
+        <div className="px-4 py-3 border-t space-y-2" style={{ borderColor: 'rgba(124,58,237,0.18)' }}>
+          <p className="text-xs font-medium text-white/70">Adicionar acesso (e-mail real do cliente)</p>
+          <div className="flex gap-2">
+            <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="email@cliente.com"
+              className="flex-1 px-2 py-1.5 rounded text-xs text-white placeholder-white/25 outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(124,58,237,0.2)' }} />
+            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nome"
+              className="w-28 px-2 py-1.5 rounded text-xs text-white placeholder-white/25 outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(124,58,237,0.2)' }} />
+          </div>
+          <div className="flex gap-2">
+            <input value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="senha (min. 8)"
+              className="flex-1 px-2 py-1.5 rounded text-xs text-white placeholder-white/25 outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(124,58,237,0.2)' }} />
+            <button onClick={addMember} disabled={adding}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-semibold text-white disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #9333ea)' }}>
+              {adding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />} Criar acesso
+            </button>
+          </div>
         </div>
       </div>
     </div>
