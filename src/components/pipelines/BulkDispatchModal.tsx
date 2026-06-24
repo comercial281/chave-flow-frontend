@@ -122,6 +122,10 @@ export default function BulkDispatchModal({
   // Nome do envio (vai pro registro/LOG e pra lista de disparos)
   const [campaignName, setCampaignName] = useState('');
 
+  // Destino pós-envio (opcional): mover pra etapa + criar/aplicar tag
+  const [postStageId, setPostStageId] = useState('');
+  const [postLabel, setPostLabel] = useState('');
+
   // Cadência
   const [minS, setMinS] = useState(4);
   const [maxS, setMaxS] = useState(8);
@@ -145,6 +149,8 @@ export default function BulkDispatchModal({
     setRecipientCount(null);
     setItems([newSequenceItem()]);
     setCampaignName('');
+    setPostStageId('');
+    setPostLabel('');
     setMinS(4);
     setMaxS(8);
     setBatchSize(10);
@@ -288,6 +294,10 @@ export default function BulkDispatchModal({
           labels: audienceMode === 'tag' ? selectedLabels : undefined,
         },
         funnel_items: toSequencePayload(items),
+        post_send:
+          postStageId || postLabel.trim()
+            ? { stage_id: postStageId || undefined, label: postLabel.trim() || undefined }
+            : undefined,
         min_interval_seconds: minS,
         max_interval_seconds: maxS,
         batch_size: batchSize,
@@ -645,6 +655,51 @@ export default function BulkDispatchModal({
                     className="h-9"
                   />
                 </div>
+
+                {/* Após o envio (opcional): mover pra etapa + criar/aplicar tag */}
+                <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+                  <Label className="text-xs font-medium">Após o envio (opcional)</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-muted-foreground">Mover quem recebeu para a etapa</Label>
+                    <Select value={postStageId || 'none'} onValueChange={v => setPostStageId(v === 'none' ? '' : v)}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Não mover" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Não mover</SelectItem>
+                        {stages.map(s => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-muted-foreground">Aplicar tag (cria se não existir)</Label>
+                    <Input
+                      value={postLabel}
+                      onChange={e => setPostLabel(e.target.value)}
+                      placeholder="Ex: recebeu-oferta"
+                      maxLength={60}
+                      className="h-9"
+                    />
+                    {availableLabels.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {availableLabels.slice(0, 12).map(l => (
+                          <button
+                            key={l.title}
+                            type="button"
+                            onClick={() => setPostLabel(l.title)}
+                            className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] hover:bg-muted"
+                            style={{ borderColor: `${l.color || '#7c3aed'}66` }}
+                          >
+                            {l.title}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="rounded-lg border border-border divide-y divide-border text-sm">
                   <div className="flex justify-between p-2.5">
                     <span className="text-muted-foreground">Destinatários</span>

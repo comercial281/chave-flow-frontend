@@ -59,6 +59,8 @@ export interface CreateBroadcastPayload {
   funnel_items?: BroadcastSequenceItem[];
   /** Variações A/B legadas (mantido só pra compat de campanhas antigas). */
   variations?: BroadcastVariation[];
+  /** Destino pós-envio: mover pra etapa + criar/aplicar tag. */
+  post_send?: { stage_id?: string; label?: string };
   min_interval_seconds: number;
   max_interval_seconds: number;
   batch_size: number;
