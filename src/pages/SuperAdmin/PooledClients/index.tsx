@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { LogIn, Users, Loader2, RefreshCw, Building2, X, KeyRound, ExternalLink, Plus, Clock, Megaphone } from 'lucide-react';
+import { LogIn, Users, Loader2, RefreshCw, Building2, X, KeyRound, ExternalLink, Plus, Clock, Megaphone, SlidersHorizontal } from 'lucide-react';
 import api from '@/services/core/api';
 import NewTenantWizard from './NewTenantWizard';
 import ClientBroadcastModal from './ClientBroadcastModal';
@@ -114,11 +114,76 @@ function MembersModal({ tenant, onClose }: { tenant: PooledTenant; onClose: () =
   );
 }
 
+interface FeatureItem { key: string; label?: string; name?: string; description?: string; category?: string; }
+
+function FeaturesModal({ tenant, onClose }: { tenant: PooledTenant; onClose: () => void }) {
+  const [catalog, setCatalog] = useState<FeatureItem[]>([]);
+  const [features, setFeatures] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get(`/super/pooled_tenants/${tenant.id}/features`)
+      .then(r => { setCatalog(r.data?.data?.catalog || []); setFeatures(r.data?.data?.features || {}); })
+      .finally(() => setLoading(false));
+  }, [tenant.id]);
+
+  const toggle = async (key: string) => {
+    const next = !features[key];
+    setSavingKey(key);
+    setFeatures(f => ({ ...f, [key]: next }));
+    try {
+      const r = await api.patch(`/super/pooled_tenants/${tenant.id}/update_features`, { features: { [key]: next } });
+      setFeatures(r.data?.data?.features || {});
+    } catch {
+      setFeatures(f => ({ ...f, [key]: !next })); // reverte
+      alert('Falha ao salvar a função.');
+    } finally { setSavingKey(null); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={onClose}>
+      <div className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-xl overflow-hidden"
+        style={{ background: '#150a26', border: '1px solid rgba(124,58,237,0.25)' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(124,58,237,0.18)' }}>
+          <div>
+            <h3 className="text-white font-semibold text-sm">Funções - {tenant.name}</h3>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Liga/desliga o que o cliente vê em {tenant.slug}.lmflow.com.br</p>
+          </div>
+          <button onClick={onClose} className="text-white/40 hover:text-white/80"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-violet-400" /></div>
+          ) : catalog.map(f => {
+            const on = features[f.key] !== false;
+            return (
+              <div key={f.key} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-white/90 truncate">{f.label || f.name || f.key}</div>
+                  {f.description && <div className="text-xs text-white/40 truncate">{f.description}</div>}
+                </div>
+                <button onClick={() => toggle(f.key)} disabled={savingKey === f.key}
+                  className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-violet-600' : 'bg-white/15'}`}>
+                  {savingKey === f.key
+                    ? <Loader2 className="w-3 h-3 animate-spin text-white absolute top-1.5 left-3.5" />
+                    : <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${on ? 'left-5' : 'left-1'}`} />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PooledClients() {
   const [tenants, setTenants] = useState<PooledTenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [entering, setEntering] = useState<string | null>(null);
   const [membersOf, setMembersOf] = useState<PooledTenant | null>(null);
+  const [featuresOf, setFeaturesOf] = useState<PooledTenant | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [showBroadcast, setShowBroadcast] = useState(false);
 
@@ -213,6 +278,10 @@ export default function PooledClients() {
                     className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground disabled:opacity-40">
                     <Users className="w-4 h-4" /> Membros
                   </button>
+                  <button onClick={() => setFeaturesOf(t)} disabled={isProvisioning}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground disabled:opacity-40">
+                    <SlidersHorizontal className="w-4 h-4" /> Funções
+                  </button>
                 </div>
               </div>
             );
@@ -223,6 +292,7 @@ export default function PooledClients() {
         </div>
       )}
       {membersOf && <MembersModal tenant={membersOf} onClose={() => setMembersOf(null)} />}
+      {featuresOf && <FeaturesModal tenant={featuresOf} onClose={() => setFeaturesOf(null)} />}
       {showWizard && <NewTenantWizard onClose={() => setShowWizard(false)} onCreated={load} />}
       {showBroadcast && <ClientBroadcastModal tenants={tenants} onClose={() => setShowBroadcast(false)} />}
     </div>
