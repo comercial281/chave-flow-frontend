@@ -36,7 +36,11 @@ export default function CardActionsPanel({
 }: CardActionsPanelProps) {
   const canScheduleAction = useFeature('card_schedule_action');
 
-  const convId = item.conversation?.id ? String(item.conversation.id) : null;
+  const convId = item.conversation?.id
+    ? String(item.conversation.id)
+    : (item as any).conversation_id
+      ? String((item as any).conversation_id)
+      : null;
   const contactId = item.contact?.id ?? (item.conversation as any)?.contact?.id;
 
   // Derive initial state from conversation labels
