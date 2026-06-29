@@ -33,6 +33,36 @@ function normalizePhoneE164(raw: string): string {
   return `+${digits}`;
 }
 
+// Telefone e e-mail são únicos por conta. Quando o lead digitado já existe na
+// base (POST /contacts volta 422), procuramos o contato existente pra reusá-lo
+// em vez de falhar — assim "Criar novo lead" vira "criar ou reaproveitar".
+async function findExistingContact(phoneE164: string, email: string): Promise<Contact | null> {
+  const search = async (q: string): Promise<Contact[]> => {
+    if (!q) return [];
+    try {
+      const res = await contactsService.searchContacts({ q });
+      return (res?.data as Contact[]) || [];
+    } catch {
+      return [];
+    }
+  };
+
+  const phoneDigits = phoneE164.replace(/\D/g, '');
+  if (phoneDigits) {
+    const matches = await search(phoneDigits);
+    const exact = matches.find(c => (c.phone_number || '').replace(/\D/g, '') === phoneDigits);
+    if (exact) return exact;
+  }
+
+  if (email) {
+    const matches = await search(email);
+    const exact = matches.find(c => (c.email || '').toLowerCase() === email.toLowerCase());
+    if (exact) return exact;
+  }
+
+  return null;
+}
+
 interface Item {
   id: string;
   display_id?: string;
@@ -207,10 +237,23 @@ export default function AddItemModal({
       const email = newLead.email.trim();
       if (email) payload.email = email;
 
-      const created = (await contactsService.createContact(payload)) as Contact & {
-        contact?: { id: string };
-      };
-      const contactId = created?.id || created?.contact?.id;
+      // Cria o contato. Se telefone/e-mail já existir (contato único por conta →
+      // 422), reaproveita o contato existente em vez de quebrar.
+      let contactId: string | undefined;
+      let reused = false;
+      try {
+        const created = (await contactsService.createContact(payload)) as Contact & {
+          contact?: { id: string };
+        };
+        contactId = created?.id || created?.contact?.id;
+      } catch (createErr) {
+        const ce = createErr as { response?: { status?: number } };
+        if (ce?.response?.status !== 422) throw createErr;
+        const existing = await findExistingContact(phone, email);
+        if (!existing?.id) throw createErr;
+        contactId = existing.id;
+        reused = true;
+      }
       if (!contactId) throw new Error('Contato criado sem id.');
 
       try {
@@ -243,7 +286,7 @@ export default function AddItemModal({
         }
       }
 
-      toast.success('Lead criado e adicionado ao pipeline.');
+      toast.success(reused ? 'Lead já existia — adicionado ao pipeline.' : 'Lead criado e adicionado ao pipeline.');
       onItemAdded();
       onOpenChange(false);
     } catch (error) {
