@@ -1,6 +1,6 @@
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatDateBR } from '@/utils/dateUtils';
-import { Button, Badge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@evoapi/design-system';
+import { Button, Badge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/ds';
 import { Edit, Trash2, MoreVertical, Phone, Mail, MessageSquare, User, Clock, AlertCircle, ListTodo, CheckCircle2, GripVertical, GitBranch, Megaphone, Home } from 'lucide-react';
 import { PipelineItem, Pipeline, PipelineStage } from '@/types/analytics';
 import { useFeature } from '@/contexts/TenantFeaturesContext';

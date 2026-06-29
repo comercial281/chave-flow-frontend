@@ -3,7 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Integration } from '@/types/integrations';
 
 interface IntegrationModalProps {

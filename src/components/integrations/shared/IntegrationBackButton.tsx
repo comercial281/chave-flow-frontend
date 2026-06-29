@@ -1,6 +1,6 @@
 import { useLanguage } from '@/hooks/useLanguage';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 
 interface IntegrationBackButtonProps {
   onBack?: () => void;

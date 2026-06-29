@@ -1,6 +1,6 @@
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatDateBR } from '@/utils/dateUtils';
-import { Badge, Card, CardContent, Button } from '@evoapi/design-system';
+import { Badge, Card, CardContent, Button } from '@/components/ui/ds';
 import { Wand, Edit, Trash2, Globe, Loader2 } from 'lucide-react';
 import { CustomTool } from '@/types/ai';
 

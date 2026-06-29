@@ -9,7 +9,7 @@ import {
   DialogTitle,
   Button,
   Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Rocket, Search, Plus, Edit2, Trash2, Type, Mic, Image as ImageIcon,
   Video, FileText, Pause, Archive, ArchiveRestore, Clock,

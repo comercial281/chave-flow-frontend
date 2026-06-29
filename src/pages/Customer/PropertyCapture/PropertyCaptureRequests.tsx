@@ -15,7 +15,7 @@ import {
   DialogFooter,
   Label,
   Textarea,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   propertyCaptureRequestsService,
   PropertyCaptureRequest,

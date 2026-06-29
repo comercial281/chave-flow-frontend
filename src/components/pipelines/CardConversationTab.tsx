@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Button, Textarea } from '@evoapi/design-system';
+import { Button, Textarea } from '@/components/ui/ds';
 import { MessageCircle, Send, Loader2, RefreshCw, Paperclip, Rocket, Bell, X, Mic } from 'lucide-react';
 
 const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;

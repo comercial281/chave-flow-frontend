@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { Grid3X3, List, Wrench } from 'lucide-react';

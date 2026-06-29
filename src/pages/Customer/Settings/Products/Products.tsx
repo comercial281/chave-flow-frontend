@@ -17,7 +17,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 import BaseHeader from '@/components/base/BaseHeader';

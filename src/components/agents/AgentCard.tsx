@@ -1,5 +1,5 @@
 import { useLanguage } from '@/hooks/useLanguage';
-import { Button, Card, CardContent, Badge } from '@evoapi/design-system';
+import { Button, Card, CardContent, Badge } from '@/components/ui/ds';
 import { MoreHorizontal } from 'lucide-react';
 import { Agent } from '@/types/agents';
 import AgentActionsDropdown from './AgentActionsDropdown';

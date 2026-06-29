@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatDateTimeBR } from '@/utils/dateUtils';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Card, CardContent, Badge, Button } from '@evoapi/design-system';
+import { Card, CardContent, Badge, Button } from '@/components/ui/ds';
 import {
   Clock,
   User,

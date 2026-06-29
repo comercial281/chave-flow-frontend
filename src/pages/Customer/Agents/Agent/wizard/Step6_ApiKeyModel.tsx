@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { ArrowRight, ArrowLeft, Key, Bot, Settings } from 'lucide-react';
 import { ApiKey } from '@/types/agents';
 import { useLanguage } from '@/hooks/useLanguage';

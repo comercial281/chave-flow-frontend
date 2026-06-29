@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Plus, Globe, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Macro, MACRO_ACTION_TYPES } from '@/types/automation';

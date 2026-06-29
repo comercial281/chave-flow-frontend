@@ -18,7 +18,7 @@ import {
   SelectValue,
   Badge,
   Checkbox,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Edit, Eye, Key, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApiKey, ApiKeyCreate, ApiKeyUpdate } from '@/types/agents';

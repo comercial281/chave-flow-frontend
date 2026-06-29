@@ -3,7 +3,7 @@ import { Loader2, ToggleLeft, AlertCircle, Check } from 'lucide-react';
 import {
   Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
   Switch, Label,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import clientInstancesService, {
   ClientInstance, FeatureCatalogItem,
 } from '@/services/clientInstances/clientInstancesService';

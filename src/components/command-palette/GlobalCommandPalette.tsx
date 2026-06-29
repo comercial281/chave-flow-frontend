@@ -10,7 +10,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Loader2,
   MessageSquare,

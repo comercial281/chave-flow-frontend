@@ -10,7 +10,7 @@ import {
   Input,
   Label as UILabel,
   Textarea,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Code, Lock, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { tenantTemplateVariablesService } from '@/services/messageFunnels/messageFunnelsService';

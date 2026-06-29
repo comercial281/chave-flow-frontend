@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { toast } from 'sonner';
 import { Header, Sidebar } from './components';
 import {

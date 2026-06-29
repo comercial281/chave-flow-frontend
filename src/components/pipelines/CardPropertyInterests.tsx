@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiErrorMessage } from '@/utils/apiHelpers';
-import { Button, Input, Badge } from '@evoapi/design-system';
+import { Button, Input, Badge } from '@/components/ui/ds';
 import { Plus, Trash2, Loader2, Search, Home, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {

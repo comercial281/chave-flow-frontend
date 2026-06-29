@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@evoapi/design-system';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/ds';
 import PipelineAutomation, { PipelineAutomationConfig } from '@/pages/Customer/Agents/Agent/sections/PipelineAutomation';
 
 interface PipelineAutomationModalProps {

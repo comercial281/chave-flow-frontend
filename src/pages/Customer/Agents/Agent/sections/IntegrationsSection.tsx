@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
   Button,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { ExternalLink, Plug, Check, Settings, Loader2, AlertCircle } from 'lucide-react';
 import ElevenLabsConfigDialog from '@/components/integrations/ElevenLabsConfigDialog';
 import GoogleCalendarConfigDialog from '@/components/integrations/GoogleCalendarConfigDialog';

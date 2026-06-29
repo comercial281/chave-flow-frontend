@@ -1,4 +1,4 @@
-import { Input, Label, Button } from '@evoapi/design-system';
+import { Input, Label, Button } from '@/components/ui/ds';
 import { ArrowRight, ArrowLeft, Target, User } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 

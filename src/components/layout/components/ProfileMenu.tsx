@@ -4,7 +4,7 @@ import {
   Button, Avatar, AvatarFallback, AvatarImage,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuLabel
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { useLanguage } from '@/hooks/useLanguage';
 import { getProfileMenuItems } from '../config/menuItems';
 import { Role } from '@/types/auth';

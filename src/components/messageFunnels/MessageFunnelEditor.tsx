@@ -9,7 +9,7 @@ import {
   Button,
   Input,
   Label as UILabel,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import type {

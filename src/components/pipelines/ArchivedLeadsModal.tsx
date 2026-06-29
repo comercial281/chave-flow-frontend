@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   Button,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Loader2, Archive, RotateCcw, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { pipelinesService } from '@/services/pipelines';

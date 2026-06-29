@@ -9,7 +9,7 @@ import {
   Select,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { MessageSquare, Info, Settings, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 

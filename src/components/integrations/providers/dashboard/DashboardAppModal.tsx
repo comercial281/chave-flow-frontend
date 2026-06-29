@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
   Card
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Monitor, AlertCircle } from 'lucide-react';
 import { DashboardApp, DashboardAppFormData } from '@/types/integrations';
 

@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { customRolesService } from '@/services/customRoles/customRolesService';
 import type { CustomRole, RoleAuditLogEntry } from '@/types/customRoles';
 

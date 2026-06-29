@@ -10,7 +10,7 @@ import {
   Input,
   Button,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Search, Plus, Loader2, BookOpen, Check } from 'lucide-react';
 import api from '@/services/core/api';
 import {

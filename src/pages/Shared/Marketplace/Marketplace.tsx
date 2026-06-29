@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Input, Badge, Button } from '@evoapi/design-system';
+import { Input, Badge, Button } from '@/components/ui/ds';
 import { Search, CheckCircle2, XCircle, Link, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/services/core/api';

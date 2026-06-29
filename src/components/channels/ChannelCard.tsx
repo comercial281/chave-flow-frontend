@@ -1,4 +1,4 @@
-import { Button, Card, CardContent } from '@evoapi/design-system';
+import { Button, Card, CardContent } from '@/components/ui/ds';
 import { Settings, Trash2 } from 'lucide-react';
 import { Inbox } from '@/types/channels/inbox';
 import ChannelIcon from './ChannelIcon';

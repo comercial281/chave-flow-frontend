@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Agent } from '@/types/agents';
 import { AgentChatProvider } from '@/contexts/agents/AgentChatContext';
 import { AgentChatSessionList, AgentChatArea } from '@/pages/Customer/Agents/Agent/chat';

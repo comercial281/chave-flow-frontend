@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Upload, FileText, Trash2, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { PipelineStage } from '@/types/analytics';

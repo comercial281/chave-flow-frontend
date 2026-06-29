@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   Button,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Grid3X3, List, Users } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 

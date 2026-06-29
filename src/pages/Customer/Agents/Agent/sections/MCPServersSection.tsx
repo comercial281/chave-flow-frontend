@@ -1,5 +1,5 @@
 import { useLanguage } from '@/hooks/useLanguage';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { Server, Network, Plus, Loader2 } from 'lucide-react';
 import { MCPServerConfig } from '@/types/ai';
 import { useState } from 'react';

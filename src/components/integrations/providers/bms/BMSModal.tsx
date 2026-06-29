@@ -10,7 +10,7 @@ import {
   Card,
   Switch,
   Label
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { MessageSquare, AlertCircle, ExternalLink } from 'lucide-react';
 import { BMSHook, BMSFormData, IntegrationHook } from '@/types/integrations';
 

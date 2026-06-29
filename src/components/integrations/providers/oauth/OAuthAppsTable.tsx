@@ -1,7 +1,7 @@
 import { Key, Edit, Trash2, Copy, Eye, EyeOff, Shield } from 'lucide-react';
 import { OAuthApplication } from '@/types/integrations';
 import { BaseTable, TableColumn, TableAction } from '@/components/base';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
 

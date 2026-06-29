@@ -17,7 +17,7 @@ import {
   Avatar,
   AvatarFallback,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { MessageSquare, Phone, Mail, Send, Loader2 } from 'lucide-react';
 import { Contact, ContactableInboxes } from '@/types/contacts';
 import { contactsService } from '@/services/contacts';

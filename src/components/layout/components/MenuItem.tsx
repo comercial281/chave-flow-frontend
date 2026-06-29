@@ -5,7 +5,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { MenuItem as MenuItemType } from '../config/menuItems';
 
 function cn(...classes: (string | undefined | null | false)[]) {

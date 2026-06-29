@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@evoapi/design-system';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/ds';
 import ContactEditRules, { ContactEditConfig } from '@/pages/Customer/Agents/Agent/sections/ContactEditRules';
 
 interface ContactEditModalProps {

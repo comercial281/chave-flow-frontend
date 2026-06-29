@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Button, Textarea } from '@evoapi/design-system';
+import { Button, Textarea } from '@/components/ui/ds';
 import { Loader2, Send, Trash2, MessageSquareText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

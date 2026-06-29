@@ -30,7 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Plus, Trash2, ChevronsUpDown, Check, User, Phone, Mail, History, Loader2, Tag, Shuffle, X, RefreshCw, Home, Settings2, Link, MessageSquare, Megaphone, MessageCircle } from 'lucide-react';
 import { PipelineItem, PipelineStage, Pipeline, PipelineTask, CreateTaskData, UpdateTaskData, PipelineServiceDefinition } from '@/types/analytics';
 import pipelineServiceDefinitionsService from '@/services/pipelines/pipelineServiceDefinitionsService';

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Button, Input, Textarea } from '@evoapi/design-system';
+import { Button, Input, Textarea } from '@/components/ui/ds';
 import {
   X, Trash2, Type, Mic, Image as ImageIcon, Video, FileText,
   ChevronUp, ChevronDown, Square, Upload, Clock, AlertCircle, Loader2,

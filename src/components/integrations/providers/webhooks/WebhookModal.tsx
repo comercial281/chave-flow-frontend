@@ -11,7 +11,7 @@ import {
   Textarea,
   Checkbox,
   Card
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Globe, AlertCircle } from 'lucide-react';
 import { Webhook } from '@/types/integrations';
 

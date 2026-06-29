@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Grid3X3, List, GitBranch, Sparkles } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 import { followupAdminService } from '@/services/followupSequences/followupSequencesService';

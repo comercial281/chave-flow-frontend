@@ -3,7 +3,7 @@ import { formatDateTimeBR } from '@/utils/dateUtils';
 import { Edit, X, Clock, AlertCircle } from 'lucide-react';
 import { ScheduledAction } from '@/types/automation';
 import { BaseTable, TableColumn, TableAction } from '@/components/base';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 
 interface ScheduledActionsTableProps {
   actions: ScheduledAction[];

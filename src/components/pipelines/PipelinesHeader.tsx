@@ -1,5 +1,5 @@
 import { useLanguage } from '@/hooks/useLanguage';
-import { Button, Input } from '@evoapi/design-system';
+import { Button, Input } from '@/components/ui/ds';
 import { Search, Plus } from 'lucide-react';
 
 interface PipelinesHeaderProps {

@@ -7,7 +7,7 @@ import {
   SelectValue,
   Input,
   Button,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Tag, MapPin, Building2, X } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { BaseFilter } from '@/types/core';

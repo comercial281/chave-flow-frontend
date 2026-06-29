@@ -8,7 +8,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import MenuItem from './MenuItem';
 import { MenuItem as MenuItemType } from '../config/menuItems';
 
@@ -53,6 +53,8 @@ export default function Sidebar({
     <>
       {/* Desktop Sidebar */}
       <div
+        role="complementary"
+        aria-label="Menu lateral"
         className={cn(
           'hidden md:flex bg-sidebar text-sidebar-foreground flex-col border-r border-sidebar-border',
           isCollapsed ? 'w-16' : 'w-56',

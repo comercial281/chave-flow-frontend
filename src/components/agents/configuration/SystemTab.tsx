@@ -12,7 +12,7 @@ import {
   Input,
   Textarea,
   Button,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Agent } from '@/types/agents';
 import {
   UserRound,

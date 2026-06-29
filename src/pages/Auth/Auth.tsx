@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { toast } from 'sonner';
 import { login, register, forgotPassword } from '@/services/auth';
 import { useAuth } from '@/contexts/AuthContext';

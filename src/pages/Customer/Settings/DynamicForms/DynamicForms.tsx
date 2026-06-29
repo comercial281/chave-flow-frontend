@@ -18,7 +18,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Plus, Edit, Trash2, FileText, GripVertical,
   ToggleLeft, ToggleRight, X, ClipboardList,

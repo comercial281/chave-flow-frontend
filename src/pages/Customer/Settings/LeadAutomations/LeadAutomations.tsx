@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Plus, Edit, Trash2, Zap, ChevronDown, ChevronUp, ToggleLeft, ToggleRight,
   Archive, ArchiveRestore, BookOpen, Lock,

@@ -2,7 +2,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { Monitor, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { DashboardApp } from '@/types/integrations';
 import { BaseTable, TableColumn, TableAction } from '@/components/base';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 
 interface DashboardAppsTableProps {
   apps: DashboardApp[];

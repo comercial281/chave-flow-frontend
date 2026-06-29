@@ -12,7 +12,7 @@ import {
   Checkbox,
   Label,
   Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {  Info, Trash2, Plus, CheckSquare, Calendar } from 'lucide-react';
 import { useState } from 'react';
 

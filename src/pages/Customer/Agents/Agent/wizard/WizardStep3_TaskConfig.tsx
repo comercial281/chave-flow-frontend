@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import TaskConfigForm, { TaskConfigData } from '@/components/ai_agents/Forms/TaskConfigForm';

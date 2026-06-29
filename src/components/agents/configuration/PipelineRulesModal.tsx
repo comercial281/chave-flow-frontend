@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import PipelineRules, { PipelineRule } from '@/pages/Customer/Agents/Agent/sections/PipelineRules';
 
 interface PipelineRulesModalProps {

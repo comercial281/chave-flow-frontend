@@ -9,7 +9,7 @@ import {
   Button,
   Card,
   CardContent,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Clock, Trash2, Plus, Info } from 'lucide-react';
 
 export interface InactivityAction {

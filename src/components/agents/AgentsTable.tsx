@@ -1,4 +1,4 @@
-import { Badge, Button } from '@evoapi/design-system';
+import { Badge, Button } from '@/components/ui/ds';
 import { formatDateBR } from '@/utils/dateUtils';
 import { Bot, ExternalLink, ArrowRight, GitBranch, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { Agent } from '@/types/agents';

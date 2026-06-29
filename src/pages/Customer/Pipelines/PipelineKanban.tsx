@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   Badge,
   Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   ArrowLeft,
   Plus,

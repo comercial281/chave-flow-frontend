@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Button, Badge } from '@evoapi/design-system';
+import { Button, Badge } from '@/components/ui/ds';
 import { MessageCircle, Loader2, RefreshCw } from 'lucide-react';
 import MessageList from '@/components/chat/messages/MessageList';
 import { useMessageHistory } from '@/hooks/chat/useMessageHistory';

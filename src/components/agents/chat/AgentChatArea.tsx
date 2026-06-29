@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useAgentChat } from '@/contexts/agents/AgentChatContext';

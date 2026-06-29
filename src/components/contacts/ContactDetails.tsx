@@ -16,7 +16,7 @@ import {
   TabsTrigger,
   ScrollArea,
   Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import ContactStatusBadge from './ContactStatusBadge';
 import ContactTypeBadge from './ContactTypeBadge';
 import ContactConversationTab from './ContactConversationTab';

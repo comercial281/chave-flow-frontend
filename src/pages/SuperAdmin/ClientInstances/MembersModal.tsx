@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import {
   Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import clientInstancesService, {
   ClientInstance, TenantUser, CreateTenantUserPayload,
 } from '@/services/clientInstances/clientInstancesService';

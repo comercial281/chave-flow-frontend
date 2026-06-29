@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import NotificationPanel from './NotificationPanel';
 import { useNotifications } from '@/contexts/NotificationsContext';
 import { cn } from '@/lib/utils';

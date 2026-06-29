@@ -10,7 +10,7 @@ import { TenantFeaturesProvider } from './contexts/TenantFeaturesContext';
 import { UISettingsApplier } from './components/UISettingsApplier';
 import ErrorBoundary from './components/ErrorBoundary';
 
-import { Toaster } from '@evoapi/design-system';
+import { Toaster } from '@/components/ui/ds';
 
 import { useIsDarkClass } from '@/hooks/chat/useIsDarkClass';
 

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Sheet, CheckSquare, Edit3, FilePlus, Loader2, Settings } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';

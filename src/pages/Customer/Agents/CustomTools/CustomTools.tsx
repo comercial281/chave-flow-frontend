@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useLanguage } from '@/hooks/useLanguage';
 import { AgentsCustomToolsTour } from '@/tours';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Button } from '@evoapi/design-system';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Button } from '@/components/ui/ds';
 import { Grid3X3, List, Wand } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 import { CustomTool, CustomToolsState, CustomToolFormData, CustomToolsListParams } from '@/types/ai';

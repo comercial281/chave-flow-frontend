@@ -5,7 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { ChevronDown, Search, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Pipeline } from '@/types/analytics';

@@ -11,7 +11,7 @@ import {
   Card,
   Switch,
   Label
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Brain, AlertCircle, ExternalLink } from 'lucide-react';
 import { OpenAIHook, OpenAIFormData, IntegrationHook } from '@/types/integrations';
 

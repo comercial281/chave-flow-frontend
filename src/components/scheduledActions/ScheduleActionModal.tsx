@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
   Textarea,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { scheduledActionsService } from '@/services/scheduledActions/scheduledActionsService';
 import { followupSequencesService } from '@/services/followupSequences/followupSequencesService';
 import {

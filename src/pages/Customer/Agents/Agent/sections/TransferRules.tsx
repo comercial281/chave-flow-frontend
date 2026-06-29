@@ -10,7 +10,7 @@ import {
   Card,
   CardContent,
   Checkbox,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { UserRound, Trash2, Plus, Info } from 'lucide-react';
 
 export interface TransferRule {

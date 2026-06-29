@@ -11,7 +11,7 @@ import {
   SelectValue,
   Button,
   Switch,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { toast } from 'sonner';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import BaseHeader from '@/components/base/BaseHeader';

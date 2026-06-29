@@ -8,7 +8,7 @@ import {
   Button,
   Label,
   Textarea,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { openaiService } from '@/services/integrations/openaiService';

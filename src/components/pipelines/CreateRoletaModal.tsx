@@ -13,7 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Loader2, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 import InboxesService from '@/services/channels/inboxesService';

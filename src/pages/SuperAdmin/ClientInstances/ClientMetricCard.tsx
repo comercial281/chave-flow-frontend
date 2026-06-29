@@ -1,6 +1,6 @@
 import { Building2, Wifi, WifiOff, Server, MessageSquare, Users, LayoutList, Archive } from 'lucide-react';
 import { formatDateBR } from '@/utils/dateUtils';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import type { ClientInstance } from '@/services/clientInstances/clientInstancesService';
 
 interface Props {

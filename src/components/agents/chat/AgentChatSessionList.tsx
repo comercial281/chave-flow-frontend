@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input, ScrollArea } from '@evoapi/design-system';
+import { Button, Input, ScrollArea } from '@/components/ui/ds';
 import { Search, Plus, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useAgentChat } from '@/contexts/agents/AgentChatContext';

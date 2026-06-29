@@ -14,7 +14,7 @@ import {
   Label as UILabel,
   Textarea,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Globe, Plus, Edit, Trash2, FileText, Newspaper,
   ExternalLink, Archive, Send, RefreshCw, Users,

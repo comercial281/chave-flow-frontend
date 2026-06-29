@@ -1,5 +1,5 @@
 import { BarChart3, Layers, TrendingUp } from 'lucide-react';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@evoapi/design-system';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui/ds';
 import { AreaChartCard, BarChartCard, DonutChartCard } from '@/components/charts';
 import type { CustomerDashboardResponse } from '@/types/analytics/dashboard';
 import { formatCurrency } from './dashboardUtils';

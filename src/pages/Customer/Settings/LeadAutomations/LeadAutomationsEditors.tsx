@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Input, Label as UILabel, Textarea, Button } from '@evoapi/design-system';
+import { Input, Label as UILabel, Textarea, Button } from '@/components/ui/ds';
 import { Plus, Pencil } from 'lucide-react';
 
 import MessageFunnelEditor from '@/components/messageFunnels/MessageFunnelEditor';

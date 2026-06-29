@@ -1,4 +1,4 @@
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { ArrowLeft, Save, Loader2, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 

@@ -9,7 +9,7 @@ import {
   Badge,
   Button,
   Separator,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Wand, Edit, Globe, Settings, Calendar, FileText, Tags, Loader2 } from 'lucide-react';
 import { CustomTool } from '@/types/ai';
 

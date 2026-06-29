@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import {
   Loader2, Calendar, Trash2, Move, CheckSquare, Square,
   PauseCircle, PlayCircle, BotOff, Bot, AlertCircle,

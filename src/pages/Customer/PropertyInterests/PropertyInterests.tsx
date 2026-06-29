@@ -13,7 +13,7 @@ import {
   Label as UILabel,
   Textarea,
   Input,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   TrendingUp, Building2, User, ChevronRight, Trophy, XCircle,
   Plus, Search,

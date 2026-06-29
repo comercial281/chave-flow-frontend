@@ -11,7 +11,7 @@ import {
   CardContent,
   Checkbox,
   Label,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { GitBranch, Trash2, Plus, Info, CheckSquare, Briefcase } from 'lucide-react';
 
 export interface StageRule {

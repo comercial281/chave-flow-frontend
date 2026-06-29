@@ -3,7 +3,7 @@ import {
   Activity, RefreshCw, MessageSquare, Smartphone, AlertTriangle,
   CheckCircle2, XCircle, Clock, Loader2, ServerCog,
 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle, Badge } from '@evoapi/design-system';
+import { Button, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui/ds';
 import BaseStatsCard from '@/components/base/BaseStatsCard';
 import BarChartCard from '@/components/charts/BarChartCard';
 import DonutChartCard from '@/components/charts/DonutChartCard';

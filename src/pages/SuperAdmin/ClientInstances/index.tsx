@@ -5,7 +5,7 @@ import {
   Copy, ExternalLink, Trash2, ChevronDown, ChevronUp, Users, ToggleLeft,
   BarChart3, List, Archive, ArchiveRestore, UploadCloud, ScrollText, Gauge,
 } from 'lucide-react';
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@evoapi/design-system';
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Input, Label } from '@/components/ui/ds';
 import clientInstancesService, {
   ClientInstance, CreateClientInstancePayload, DashboardData,
 } from '@/services/clientInstances/clientInstancesService';

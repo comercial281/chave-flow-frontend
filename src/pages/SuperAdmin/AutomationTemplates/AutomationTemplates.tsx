@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import {
   Button, Input, Label as UILabel,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Zap, RefreshCw, CheckCircle, Loader2, ChevronRight,
   Shuffle, Calendar, TrendingUp, Award, RefreshCcw,

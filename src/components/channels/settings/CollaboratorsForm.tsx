@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, Button, Switch } from '@evoapi/design-system';
+import { Card, CardContent, Button, Switch } from '@/components/ui/ds';
 import { Check, Users, Settings, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';

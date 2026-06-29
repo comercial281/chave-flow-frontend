@@ -1,5 +1,5 @@
 import { Clock, MessageSquare, CheckCircle2, AlertTriangle, UserX } from 'lucide-react';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@evoapi/design-system';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui/ds';
 import type { CustomerDashboardResponse } from '@/types/analytics/dashboard';
 import DashboardMetricCard from './DashboardMetricCard';
 import { formatSeconds } from './dashboardUtils';

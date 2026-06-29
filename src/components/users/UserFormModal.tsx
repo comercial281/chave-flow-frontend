@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { toast } from 'sonner';
 import usersService from '@/services/users/usersService';
 import { customRolesService } from '@/services/customRoles/customRolesService';

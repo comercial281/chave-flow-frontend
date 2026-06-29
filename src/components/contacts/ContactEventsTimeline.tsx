@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { formatDateBR } from '@/utils/dateUtils';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@evoapi/design-system';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui/ds';
 import { Activity, Clock, Filter, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { useContactEvents } from '@/hooks/useContactEvents';
 import ContactEventCard from './ContactEventCard';

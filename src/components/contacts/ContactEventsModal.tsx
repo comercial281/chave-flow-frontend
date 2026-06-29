@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatDateBR } from '@/utils/dateUtils';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from '@evoapi/design-system';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from '@/components/ui/ds';
 import { Activity, Loader2, BarChart3, Calendar, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import ContactEventsTimeline from './ContactEventsTimeline';
 import { useContactEvents } from '@/hooks/useContactEvents';

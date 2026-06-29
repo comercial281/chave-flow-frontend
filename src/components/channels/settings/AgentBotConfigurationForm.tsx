@@ -14,7 +14,7 @@ import {
   Label,
   Badge,
   Switch,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Bot,
   Trash2,

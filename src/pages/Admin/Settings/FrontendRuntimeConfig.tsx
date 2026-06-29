@@ -10,7 +10,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';

@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle, Globe, Edit, Trash2, Play } from 'lucide-react';
 import { Webhook } from '@/types/integrations';
 import { BaseTable, TableColumn, TableAction } from '@/components/base';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface WebhooksTableProps {

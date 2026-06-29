@@ -1,6 +1,6 @@
 import { Edit, Trash2, Eye, Key, Copy } from 'lucide-react';
 import { formatDateBR } from '@/utils/dateUtils';
-import { Badge } from '@evoapi/design-system';
+import { Badge } from '@/components/ui/ds';
 import BaseTable from '@/components/base/BaseTable';
 import type { AccessToken } from '@/types/auth';
 import { useUserPermissions } from '@/hooks/useUserPermissions';

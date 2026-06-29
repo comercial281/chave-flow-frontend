@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Avatar, AvatarFallback } from '@evoapi/design-system';
+import { Avatar, AvatarFallback } from '@/components/ui/ds';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Check, ExternalLink } from 'lucide-react';

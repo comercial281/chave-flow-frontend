@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Button, Textarea } from '@evoapi/design-system';
+import { Button, Textarea } from '@/components/ui/ds';
 import { Send, Paperclip, X, Image, FileText, File, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatFileSize, isImageFile, type FileData } from '@/utils/fileUtils';

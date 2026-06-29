@@ -11,7 +11,7 @@ import {
   TabsList,
   TabsTrigger,
   Skeleton,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Search, Puzzle, Grid3X3 } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 import BaseHeader from '@/components/base/BaseHeader';

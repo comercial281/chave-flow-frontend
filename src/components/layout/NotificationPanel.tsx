@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import {
   ChevronLeft,
   ChevronRight,

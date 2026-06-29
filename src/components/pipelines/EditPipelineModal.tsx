@@ -20,7 +20,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Loader2, X, Users } from 'lucide-react';
 import { Pipeline, UpdatePipelineData } from '@/types/analytics';
 import TeamsService from '@/services/teams/teamsService';

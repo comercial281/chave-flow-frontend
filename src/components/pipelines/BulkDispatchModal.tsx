@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Megaphone,
   Users,

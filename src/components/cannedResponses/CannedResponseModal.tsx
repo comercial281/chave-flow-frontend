@@ -11,7 +11,7 @@ import {
   Input,
   Label as UILabel,
   Textarea,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   CannedResponse,
   CannedResponseFormData,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Input, Label } from '@evoapi/design-system';
+import { Input, Label } from '@/components/ui/ds';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';

@@ -9,7 +9,7 @@ import {
   Input,
   Textarea,
   Card
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Key, AlertCircle } from 'lucide-react';
 import { OAuthApplication } from '@/types/integrations';
 

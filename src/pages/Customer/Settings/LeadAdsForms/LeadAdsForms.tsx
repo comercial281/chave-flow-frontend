@@ -11,7 +11,7 @@ import {
   DialogTitle,
   Label as UILabel,
   Badge,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   FileInput, RefreshCw, Edit, ToggleLeft, ToggleRight, AlertTriangle, ArrowRight, Download,
 } from 'lucide-react';

@@ -10,7 +10,7 @@ import {
   DialogTitle,
   Button,
   Card,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { Settings, LucideIcon } from 'lucide-react';
 
 import { integrationsService } from '@/services/integrations';

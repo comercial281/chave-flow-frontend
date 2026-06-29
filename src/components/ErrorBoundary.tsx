@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { isChunkError, reloadForNewVersion } from '@/utils/chunkReload';
 
 interface ErrorBoundaryState {

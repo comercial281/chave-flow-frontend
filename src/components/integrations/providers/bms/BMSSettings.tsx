@@ -10,7 +10,7 @@ import {
   DialogTitle,
   Button,
   Card,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { MessageSquare, Settings, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import EmptyState from '@/components/base/EmptyState';
 

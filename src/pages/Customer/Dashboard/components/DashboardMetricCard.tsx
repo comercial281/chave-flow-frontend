@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@evoapi/design-system';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui/ds';
 import { TooltipInfo } from '@/components/base/TooltipInfo';
 import { useInView, animate } from 'framer-motion';
 

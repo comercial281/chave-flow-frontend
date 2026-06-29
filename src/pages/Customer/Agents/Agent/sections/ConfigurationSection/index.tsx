@@ -3,7 +3,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { LLMConfigData } from '@/components/ai_agents/Forms/LLMConfigForm';
 import { A2AConfigData } from '@/components/ai_agents/Forms/A2AConfigForm';
 import { TaskConfigData } from '@/components/ai_agents/Forms/TaskConfigForm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@evoapi/design-system';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/ds';
 import { Agent, ApiKey } from '@/types/agents';
 import { Settings, MessageSquare, Timer } from 'lucide-react';
 import { InactivityAction } from '../InactivityActions';

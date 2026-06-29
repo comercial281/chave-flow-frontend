@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { ApiKey, Agent } from '@/types/agents';
 import { Key, Brain, FileText, Settings, Zap, Plus, Plug } from 'lucide-react';
 import { ApiKeysModal } from '@/components/ApiKeysModal';

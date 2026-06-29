@@ -27,7 +27,7 @@ import {
   SelectValue,
   Switch,
   Checkbox,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import { AlertTriangle, Mail, Volume2, Bell, Keyboard, Play, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';

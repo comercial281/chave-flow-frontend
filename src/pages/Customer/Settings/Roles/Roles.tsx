@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@evoapi/design-system';
+import { Button } from '@/components/ui/ds';
 import { Plus, Copy, Pencil, Trash2, Clock, Shield, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { customRolesService } from '@/services/customRoles/customRolesService';

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import {
   Button, Input, Label as UILabel, Badge,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@evoapi/design-system';
+} from '@/components/ui/ds';
 import {
   Shuffle, Plus, Trash2, GripVertical, Save, Phone,
   Clock, Bell, ToggleLeft, ToggleRight, Users, BarChart2,
