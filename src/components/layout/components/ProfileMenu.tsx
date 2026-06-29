@@ -95,7 +95,7 @@ export default function ProfileMenu({ user, mobile = false, setLogoutDialogOpen,
     <div className="relative">
       <Avatar className={size}>
         <AvatarImage src={user.avatar_url} alt={userName} />
-        <AvatarFallback className="bg-sidebar-primary text-white font-medium">{userInitials}</AvatarFallback>
+        <AvatarFallback className="bg-violet-700 text-white font-medium">{userInitials}</AvatarFallback>
       </Avatar>
       <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 ${border} ${availConfig.color}`} />
     </div>
