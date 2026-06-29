@@ -107,7 +107,7 @@ export default function Sidebar({
               </div>
             ) : (
               <>
-                <div className="text-sm text-primary font-medium">{companyName}</div>
+                <div className="text-sm text-sidebar-foreground font-medium">{companyName}</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {t('sidebar.footer.copyright', { year: currentYear })}
                 </div>
