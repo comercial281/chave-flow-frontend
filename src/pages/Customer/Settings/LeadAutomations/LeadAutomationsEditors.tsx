@@ -61,6 +61,7 @@ const ACTIONS_REQUIRING_PARAMS: Record<string, string[]> = {
   send_quick_reply:        ['quick_reply_id'],
   notify_broker:           ['message'],
   notify_gestor:           ['message'],
+  notify_push:             ['user_ids', 'message'],
   // assign_via_roleta e wait não têm params obrigatórios
 };
 
@@ -937,6 +938,56 @@ export function ActionEditor({ action, onChange, resources }: ActionEditorProps)
         </Field>
       );
 
+    // ----- notify_push -----
+    // Backend: notify_push(user_ids[], title, message) -> push no app (PWA/Modo Plantão) dos usuários.
+    case 'notify_push': {
+      const rawIds = (action.params as Record<string, unknown> | undefined)?.user_ids;
+      const selectedIds: string[] = Array.isArray(rawIds) ? rawIds.map(String) : [];
+      const setUserIds = (ids: string[]) =>
+        onChange({ ...action, params: { ...params, user_ids: ids } as unknown as Record<string, string | number> });
+      const toggleUser = (id: string) =>
+        setUserIds(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id]);
+      return (
+        <>
+          <Field label="Notificar quais usuários? *" hint="Recebe o push só quem ativou o Modo Plantão no app/celular.">
+            <div className="mt-1 max-h-44 overflow-y-auto rounded-md border border-input bg-background divide-y divide-input">
+              {resources.users.length === 0 && (
+                <p className="text-xs text-muted-foreground p-2">Nenhum usuário cadastrado.</p>
+              )}
+              {resources.users.map(u => (
+                <label key={u.id} className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-muted/50">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(String(u.id))}
+                    onChange={() => toggleUser(String(u.id))}
+                  />
+                  <span>{u.name}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Título da notificação" hint="Aparece em negrito no push. Padrão: LM Flow.">
+            <Input
+              value={String(params.title ?? '')}
+              onChange={e => setParam('title', e.target.value)}
+              placeholder="Novo lead!"
+              className="mt-1"
+            />
+          </Field>
+          <Field label="Mensagem do push *" hint="Texto do push. Toque numa variável pra inserir.">
+            <Textarea
+              value={String(params.message ?? '')}
+              onChange={e => setParam('message', e.target.value)}
+              placeholder="{{nome_completo}} acabou de entrar — {{telefone}}"
+              rows={3}
+              className="mt-1 resize-none"
+            />
+            <VariableChips onInsert={tok => appendToParam('message', tok)} />
+          </Field>
+        </>
+      );
+    }
+
     default:
       return null;
   }
@@ -997,7 +1048,7 @@ export function validateRule(
     const required = ACTIONS_REQUIRING_PARAMS[action.type] ?? [];
     for (const key of required) {
       const value = action.params?.[key];
-      if (value === undefined || value === '' || value === null) {
+      if (value === undefined || value === '' || value === null || (Array.isArray(value) && value.length === 0)) {
         return {
           ok: false,
           error: `Preencha "${key}" na ação "${action.type}".`,
@@ -1111,6 +1162,11 @@ export function formatActionSummary(
       return p.message ? `Corretor: "${String(p.message).slice(0, 50)}..."` : '(mensagem vazia)';
     case 'notify_gestor':
       return p.message ? `Gestor: "${String(p.message).slice(0, 50)}..."` : '(mensagem vazia)';
+    case 'notify_push': {
+      const ids = Array.isArray((p as Record<string, unknown>).user_ids) ? ((p as Record<string, unknown>).user_ids as string[]) : [];
+      const names = ids.map(id => resources.users.find(x => String(x.id) === String(id))?.name).filter(Boolean);
+      return names.length ? `Push p/ ${names.join(', ')}` : 'Push no app: (sem usuário)';
+    }
     default:
       return '';
   }

@@ -170,6 +170,7 @@ export const ACTION_TYPE_LABELS: Record<string, string> = {
   notify_user:             'Avisar usuário no WhatsApp (lembrete)',
   notify_broker:           'Notificar corretor (WhatsApp pessoal)',
   notify_gestor:           'Notificar gestor (WhatsApp)',
+  notify_push:             'Notificação no app (push / Modo Plantão)',
   send_quick_reply:        'Enviar resposta rapida',
   wait:                    'Aguardar (delay)',
 };
