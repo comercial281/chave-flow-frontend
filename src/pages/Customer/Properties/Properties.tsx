@@ -39,6 +39,7 @@ import {
   Upload,
   Link as LinkIcon,
   Film,
+  Megaphone,
 } from 'lucide-react';
 import {
   propertiesService,
@@ -490,6 +491,7 @@ export default function Properties() {
                 onEdit={openEdit}
                 onDelete={p => { setToDelete(p); setDeleteDialogOpen(true); }}
                 onManagePhotos={p => setPhotosProperty(p)}
+                onLanding={p => navigate(`/properties/${p.id}/landing`)}
                 score={propertyScores[property.id]}
                 onCalculateScore={() => handleCalculateScore(property.id)}
                 scoringId={scoringId}
@@ -879,6 +881,7 @@ function PropertyCard({
   onEdit,
   onDelete,
   onManagePhotos,
+  onLanding,
   score,
   onCalculateScore,
   scoringId,
@@ -887,6 +890,7 @@ function PropertyCard({
   onEdit: (p: Property) => void;
   onDelete: (p: Property) => void;
   onManagePhotos: (p: Property) => void;
+  onLanding: (p: Property) => void;
   score?: number;
   onCalculateScore: () => void;
   scoringId: string | null;
@@ -925,6 +929,9 @@ function PropertyCard({
           </Button>
           <Button size="sm" variant="secondary" onClick={() => onManagePhotos(p)} title="Gerenciar fotos">
             <Image className="h-3.5 w-3.5" />
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => onLanding(p)} title="Landing Page de anúncio">
+            <Megaphone className="h-3.5 w-3.5" />
           </Button>
           <Button size="sm" variant="destructive" onClick={() => onDelete(p)}>
             <Trash2 className="h-3.5 w-3.5" />
