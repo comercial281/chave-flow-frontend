@@ -26,6 +26,7 @@ import { useDashboardApps } from '@/hooks/useDashboardApps';
 import { injectDashboardAppsIntoMenu } from '@/utils/injectDashboardApps';
 import { applyMenuPrefs, MENU_PREFS_EVENT } from './config/menuPrefs';
 import MenuCustomizer from './components/MenuCustomizer';
+import InstallAppPrompt from './components/InstallAppPrompt';
 import { WelcomeTourModal } from '@/components/WelcomeTourModal';
 import GlobalCommandPalette from '@/components/command-palette/GlobalCommandPalette';
 
@@ -187,6 +188,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* Tour */}
       <WelcomeTourModal />
+
+      {/* Instalar app (PWA) na tela inicial */}
+      <InstallAppPrompt />
 
       {/* Logout Dialog */}
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
