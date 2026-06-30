@@ -188,7 +188,6 @@ export default function CardConversationTab({ item, onCreateReminder }: CardConv
 
   useEffect(() => {
     if (!registerHandlers || !conversationId) return;
-    const prevHandlers: { onMessageCreated?: unknown } = {};
     registerHandlers({
       onMessageCreated: (msg: Message) => {
         if (String((msg as any).conversation_id) !== conversationId) return;
