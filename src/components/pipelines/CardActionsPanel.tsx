@@ -40,7 +40,9 @@ export default function CardActionsPanel({
     ? String(item.conversation.id)
     : (item as any).conversation_id
       ? String((item as any).conversation_id)
-      : null;
+      : (item as any).whatsapp_conversation_id
+        ? String((item as any).whatsapp_conversation_id)
+        : null;
   const contactId = item.contact?.id ?? (item.conversation as any)?.contact?.id;
 
   // Derive initial state from conversation labels
