@@ -62,6 +62,28 @@ export const landingPageService = {
     return unwrap<LandingPageDTO[]>(res);
   },
 
+  /** Create a blank ad landing NOT tied to any property (montar do zero). */
+  async createBlank(siteId: string, title: string): Promise<LandingPage> {
+    const res = await api.post(`/sites/${siteId}/pages`, {
+      page: {
+        title,
+        template_type: 'custom',
+        page_kind: 'ad_landing',
+        brand_mode: 'client',
+        indexable: false,
+        in_menu: false,
+        content_blocks: defaultLandingBlocks(),
+      },
+    });
+    return toLandingPage(unwrap<LandingPageDTO>(res));
+  },
+
+  /** All ad landings of the site (property-linked or standalone). */
+  async listLandings(siteId: string): Promise<LandingPageDTO[]> {
+    const pages = await this.listForSite(siteId);
+    return pages.filter((p) => p.page_kind === 'ad_landing');
+  },
+
   /** Returns the property's ad landing, creating it (seeded) on first access. */
   async getOrCreateForProperty(
     siteId: string,

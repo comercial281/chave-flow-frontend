@@ -381,6 +381,10 @@ export default function Properties() {
               <MapPin className="h-4 w-4 mr-2" />
               Ver no mapa
             </Button>
+            <Button variant="outline" onClick={() => navigate('/landings')}>
+              <Megaphone className="h-4 w-4 mr-2" />
+              Landings
+            </Button>
             {canAiBatch && (
               <Button variant="outline" onClick={() => { setBatchSelected(new Set()); setBatchResults(null); setBatchModalOpen(true); }}>
                 <Wand2 className="h-4 w-4 mr-2" />

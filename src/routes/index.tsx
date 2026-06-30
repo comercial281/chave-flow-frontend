@@ -69,6 +69,8 @@ const DynamicForms = lazyWithRetry(() => import('@/pages/Customer/Settings/Dynam
 const Properties = lazyWithRetry(() => import('@/pages/Customer/Properties').then(m => ({ default: m.Properties })));
 const PropertiesMap = lazyWithRetry(() => import('@/pages/Customer/Properties').then(m => ({ default: m.PropertiesMap })));
 const LandingPageEditor = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/LandingPageEditorPage'));
+const LandingByIdEditor = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/LandingByIdEditorPage'));
+const LandingsList = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/LandingsListPage'));
 const Visits = lazyWithRetry(() => import('@/pages/Customer/Visits').then(m => ({ default: m.Visits })));
 const Proposals = lazyWithRetry(() => import('@/pages/Customer/Proposals').then(m => ({ default: m.Proposals })));
 const PropertyCaptureRequests = lazyWithRetry(() => import('@/pages/Customer/PropertyCapture').then(m => ({ default: m.PropertyCaptureRequests })));
@@ -1641,6 +1643,30 @@ const AppRouter = () => {
               <PrivateRoute>
                 <CustomerRoute>
                   <LandingPageEditor />
+                </CustomerRoute>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/landings"
+            element={
+              <PrivateRoute>
+                <CustomerRoute>
+                  <MainLayout>
+                    <LandingsList />
+                  </MainLayout>
+                </CustomerRoute>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/landings/:pageId"
+            element={
+              <PrivateRoute>
+                <CustomerRoute>
+                  <LandingByIdEditor />
                 </CustomerRoute>
               </PrivateRoute>
             }
