@@ -174,10 +174,20 @@ export const STAGE_LABELS: Record<NonNullable<LandingProperty['stage']>, string>
   pre_launch: 'PRÉ LANÇAMENTO',
 };
 
+/** Lead enviado pelo formulário multi-step da landing. */
+export interface LeadSubmitPayload {
+  name: string;
+  phone: string;
+  email?: string;
+  answers: { question: string; answer: string }[];
+}
+
 export interface BlockComponentProps<T extends BlockType = BlockType> {
   config: BlockConfig<T>;
   property?: LandingProperty | null;
   theme: LandingTheme;
+  /** Fornecido pelo render público — o bloco de formulário usa pra gravar o lead. */
+  onSubmitLead?: (payload: LeadSubmitPayload) => Promise<void> | void;
 }
 
 /** pt-BR currency. Coerces string decimals (Rails serializes decimal as string). */

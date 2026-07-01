@@ -6,6 +6,7 @@ import {
   type BlockInstance,
   type LandingProperty,
   type LandingTheme,
+  type LeadSubmitPayload,
 } from '@/features/landing/blocks';
 
 interface PublicLandingDTO {
@@ -72,60 +73,55 @@ export default function LandingPublicPage() {
   const [blocks, setBlocks] = useState<BlockInstance[]>([]);
   const [theme, setTheme] = useState<Partial<LandingTheme>>({});
   const [property, setProperty] = useState<LandingProperty | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [leadName, setLeadName] = useState('');
-  const [leadPhone, setLeadPhone] = useState('');
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
   const cookie = (name: string) =>
     document.cookie.split('; ').find((c) => c.startsWith(`${name}=`))?.split('=')[1];
 
+  // Clique num CTA fixo: whatsapp abre wa.me; senão rola até o formulário.
   const onCtaClick = (e: ReactMouseEvent) => {
     const el = (e.target as HTMLElement).closest('[data-lp-action]') as HTMLElement | null;
     if (!el) return;
-    e.preventDefault();
     const action = el.getAttribute('data-lp-action');
     const wa = el.getAttribute('data-whatsapp-phone');
     if (action === 'whatsapp' && wa) {
+      e.preventDefault();
       window.open(`https://wa.me/${wa.replace(/\D/g, '')}`, '_blank');
       return;
     }
-    setModalOpen(true);
+    if (action === 'open_form') {
+      e.preventDefault();
+      document.getElementById('lp-lead-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
-  const submitLead = async () => {
-    if (!tenant || !slug || !leadName.trim() || !leadPhone.trim()) return;
-    setSending(true);
-    try {
-      const base = import.meta.env.VITE_API_URL as string;
-      const params = new URLSearchParams(window.location.search);
-      const res = await fetch(`${base}/api/public/v1/landing/${encodeURIComponent(slug)}/leads`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Tenant': tenant },
-        body: JSON.stringify({
-          lead: {
-            name: leadName.trim(),
-            phone: leadPhone.trim(),
-            source: 'landing',
-            utm_source: params.get('utm_source') ?? undefined,
-            utm_medium: params.get('utm_medium') ?? undefined,
-            utm_campaign: params.get('utm_campaign') ?? undefined,
-            utm_term: params.get('utm_term') ?? undefined,
-            utm_content: params.get('utm_content') ?? undefined,
-            form_data: {
-              fbp: cookie('_fbp') ?? null,
-              fbc: cookie('_fbc') ?? null,
-              referrer: document.referrer || null,
-              landing_url: window.location.href,
-            },
+  // Grava o lead do formulário multi-step no CRM (com respostas + tracking).
+  const onSubmitLead = async (payload: LeadSubmitPayload) => {
+    if (!tenant || !slug) return;
+    const base = import.meta.env.VITE_API_URL as string;
+    const params = new URLSearchParams(window.location.search);
+    await fetch(`${base}/api/public/v1/landing/${encodeURIComponent(slug)}/leads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant': tenant },
+      body: JSON.stringify({
+        lead: {
+          name: payload.name,
+          phone: payload.phone,
+          email: payload.email,
+          source: 'landing',
+          utm_source: params.get('utm_source') ?? undefined,
+          utm_medium: params.get('utm_medium') ?? undefined,
+          utm_campaign: params.get('utm_campaign') ?? undefined,
+          utm_term: params.get('utm_term') ?? undefined,
+          utm_content: params.get('utm_content') ?? undefined,
+          form_data: {
+            answers: payload.answers,
+            fbp: cookie('_fbp') ?? null,
+            fbc: cookie('_fbc') ?? null,
+            referrer: document.referrer || null,
+            landing_url: window.location.href,
           },
-        }),
-      });
-      if (res.ok) setSent(true);
-    } finally {
-      setSending(false);
-    }
+        },
+      }),
+    });
   };
 
   // noindex — nunca indexar landing de anúncio.
@@ -187,38 +183,8 @@ export default function LandingPublicPage() {
       onClickCapture={onCtaClick}
     >
       <div className="relative w-full max-w-[460px] shadow-2xl">
-        <BlockRenderer blocks={blocks} property={property} theme={theme} />
+        <BlockRenderer blocks={blocks} property={property} theme={theme} onSubmitLead={onSubmitLead} />
       </div>
-
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 p-5 text-neutral-100">
-            {sent ? (
-              <div className="space-y-3 text-center">
-                <p className="text-lg font-bold">Recebemos seus dados! ✅</p>
-                <p className="text-sm text-neutral-400">Um especialista vai te chamar em breve.</p>
-                <button type="button" onClick={() => setModalOpen(false)}
-                  className="w-full rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white">Fechar</button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h2 className="text-lg font-bold">Fale com um especialista</h2>
-                  <button type="button" aria-label="Fechar" onClick={() => setModalOpen(false)} className="text-neutral-400">✕</button>
-                </div>
-                <input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Seu nome"
-                  className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none focus:border-violet-500" />
-                <input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="Seu WhatsApp" inputMode="tel"
-                  className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none focus:border-violet-500" />
-                <button type="button" onClick={submitLead} disabled={sending || !leadName.trim() || !leadPhone.trim()}
-                  className="w-full rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white disabled:opacity-40">
-                  {sending ? 'Enviando…' : 'Quero falar com especialista'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

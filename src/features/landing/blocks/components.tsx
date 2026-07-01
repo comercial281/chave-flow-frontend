@@ -491,21 +491,151 @@ function ApartmentTypesBlock({ config }: BlockComponentProps<'apartment_types'>)
   );
 }
 
-function LeadFormBlock({ config }: BlockComponentProps<'lead_form'>) {
-  // Full multi-step quiz lands in LB-S6. Here: the entry card + CTA.
+function Confetti() {
+  const pieces = Array.from({ length: 26 }, (_, i) => i);
+  const colors = ['#16A34A', '#22C55E', '#EAB308', '#3B82F6', '#EF4444'];
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <style>{`@keyframes lpfall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(360px) rotate(360deg);opacity:0}}`}</style>
+      {pieces.map((i) => (
+        <span
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${(i * 37) % 100}%`,
+            top: '-10px',
+            width: 8,
+            height: 8,
+            background: colors[i % colors.length],
+            borderRadius: i % 2 ? '50%' : '2px',
+            animation: `lpfall ${1.6 + (i % 5) * 0.25}s ease-in ${(i % 7) * 0.12}s forwards`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LeadFormBlock({ config, property, onSubmitLead }: BlockComponentProps<'lead_form'>) {
+  const specialist = config.specialistName || property?.responsibleName || 'nosso especialista';
+  const totalSteps = config.steps.length + 1; // quiz + contato
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<{ question: string; answer: string }[]>([]);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const progress = done ? 100 : ((step + 1) / totalSteps) * 100;
+
+  const pickOption = (question: string, answer: string) => {
+    setAnswers((prev) => [...prev.filter((a) => a.question !== question), { question, answer }]);
+    setStep((s) => s + 1);
+  };
+
+  const submit = async () => {
+    if (!name.trim() || !phone.trim()) return;
+    setSending(true);
+    try {
+      await onSubmitLead?.({ name: name.trim(), phone: phone.trim(), email: email.trim() || undefined, answers });
+      setDone(true);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const isContact = step >= config.steps.length;
+
   return (
     <Section>
-      <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--lp-card)' }}>
-        <h2 className="mb-3 text-lg font-bold">{config.title}</h2>
-        <button
-          type="button"
-          data-lp-action="open_form"
-          data-dynamic-form-id={config.dynamicFormId ?? ''}
-          className="w-full rounded-xl px-5 py-3 font-semibold text-white"
-          style={{ background: 'var(--lp-primary)' }}
-        >
-          {config.ctaLabel}
-        </button>
+      <div id="lp-lead-form" className="scroll-mt-4 rounded-2xl border p-5"
+        style={{ background: 'var(--lp-block-bg)', borderColor: 'var(--lp-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+        {done ? (
+          <div className="relative py-2 text-center">
+            <Confetti />
+            <div className="relative">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: '#16A34A' }}>
+                <Check size={30} className="text-white" />
+              </div>
+              <h2 className="text-xl font-bold">Recebemos suas informações!</h2>
+              <p className="mx-auto mt-1 max-w-xs text-sm opacity-70">
+                O corretor {specialist} entrará em contato em breve. {config.interestedCount} pessoas estão interessadas nesse imóvel.
+              </p>
+              <button type="button" data-lp-action="whatsapp"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white"
+                style={{ background: '#16A34A' }}>
+                <WhatsAppIcon size={18} /> Fura a fila e fale direto no WhatsApp
+              </button>
+              <div className="mt-5 flex items-center gap-3 rounded-xl border p-3 text-left" style={{ borderColor: 'var(--lp-border)' }}>
+                {property?.responsibleName || config.specialistName ? (
+                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-full" style={{ background: 'var(--lp-card)' }}>
+                    <UserRound size={22} style={{ color: 'var(--lp-icon)' }} />
+                  </div>
+                ) : null}
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">{specialist}</div>
+                  <div className="text-xs opacity-60">Corretor de Imóveis · Alto Padrão</div>
+                  <div className="mt-1 inline-flex items-center gap-1 text-xs" style={{ color: '#16A34A' }}>
+                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: '#16A34A' }} /> Disponível agora · responde em até 5 minutos
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-base font-bold leading-snug">
+              {config.title} {specialist !== 'nosso especialista' ? specialist : ''}
+            </h2>
+            <p className="mt-1 text-xs opacity-60">Deixe seus dados e o corretor entrará em contato.</p>
+            <div className="mt-3 mb-4 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--lp-card)' }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'var(--lp-text)' }} />
+              </div>
+              <span className="text-xs opacity-60">Passo {Math.min(step + 1, totalSteps)} de {totalSteps}</span>
+            </div>
+
+            {!isContact ? (
+              <div>
+                <h3 className="mb-3 font-semibold">{config.steps[step].question}</h3>
+                <div className="space-y-2">
+                  {config.steps[step].options.map((opt) => (
+                    <button key={opt} type="button" onClick={() => pickOption(config.steps[step].question, opt)}
+                      className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-white transition-transform active:scale-[0.99]"
+                      style={{ background: '#1F2937' }}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {step > 0 && (
+                  <button type="button" onClick={() => setStep((s) => s - 1)} className="mt-3 text-xs opacity-60">← Voltar</button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <h3 className="mb-3 font-semibold">Tenho interesse</h3>
+                <div className="space-y-2">
+                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome *"
+                    className="w-full rounded-xl border bg-transparent px-4 py-3 text-sm outline-none focus:border-amber-400"
+                    style={{ borderColor: 'var(--lp-border)', color: 'var(--lp-text)' }} />
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" inputMode="tel"
+                    className="w-full rounded-xl border bg-transparent px-4 py-3 text-sm outline-none focus:border-amber-400"
+                    style={{ borderColor: 'var(--lp-border)', color: 'var(--lp-text)' }} />
+                  <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" inputMode="email"
+                    className="w-full rounded-xl border bg-transparent px-4 py-3 text-sm outline-none focus:border-amber-400"
+                    style={{ borderColor: 'var(--lp-border)', color: 'var(--lp-text)' }} />
+                </div>
+                <button type="button" onClick={submit} disabled={sending || !name.trim() || !phone.trim()}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white disabled:opacity-40"
+                  style={{ background: '#16A34A' }}>
+                  <WhatsAppIcon size={18} /> {sending ? 'Enviando…' : config.ctaLabel}
+                </button>
+                <button type="button" onClick={() => setStep((s) => s - 1)} className="mt-3 text-xs opacity-60">← Voltar</button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </Section>
   );

@@ -183,10 +183,36 @@ const apartmentTypesConfig = z.object({
 });
 
 const leadFormConfig = z.object({
-  /** References a DynamicForm (multi-step quiz). */
-  dynamicFormId: z.string().optional(),
-  title: z.string().max(120).default('Fale com o especialista'),
+  title: z.string().max(160).default('Preencha o formulário para falar com o especialista'),
+  /** Nome do corretor/especialista mostrado no header e na tela final. */
+  specialistName: z.string().max(60).optional(),
   ctaLabel: z.string().max(40).default('Falar com Especialista'),
+  /** "X pessoas estão interessadas nesse imóvel" na tela de obrigado. */
+  interestedCount: z.number().int().min(0).default(14),
+  /** Perguntas de qualificação (default = as do VGV Elite). */
+  steps: z
+    .array(z.object({ question: z.string(), options: z.array(z.string()) }))
+    .default([
+      {
+        question: 'Quando você pretende comprar?',
+        options: [
+          'Quero fechar o quanto antes',
+          'Nos próximos 30 dias',
+          'Em até 3 meses',
+          'Em 6 meses ou mais',
+          'Ainda estou pesquisando',
+        ],
+      },
+      {
+        question: 'Como pretende pagar?',
+        options: [
+          'Já tenho financiamento aprovado',
+          'Vou pagar à vista',
+          'Estou em processo de aprovação',
+          'Ainda não sei',
+        ],
+      },
+    ]),
 });
 
 const stickyCtaConfig = z.object({

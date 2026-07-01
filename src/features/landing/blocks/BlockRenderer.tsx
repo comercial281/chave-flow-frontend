@@ -5,6 +5,7 @@ import {
   DEFAULT_LANDING_THEME,
   type LandingProperty,
   type LandingTheme,
+  type LeadSubmitPayload,
   themeToCssVars,
 } from './render-types';
 
@@ -25,11 +26,13 @@ export interface BlockRendererProps {
   theme?: Partial<LandingTheme>;
   /** Editor preview hint: render hidden blocks dimmed instead of removing them. */
   showHidden?: boolean;
+  /** Grava o lead do formulário (render público). */
+  onSubmitLead?: (payload: LeadSubmitPayload) => Promise<void> | void;
 }
 
 /** Renders an ordered list of blocks. Shared by the editor preview and the
  *  public SSR renderer. */
-export function BlockRenderer({ blocks, property, theme, showHidden = false }: BlockRendererProps) {
+export function BlockRenderer({ blocks, property, theme, showHidden = false, onSubmitLead }: BlockRendererProps) {
   const resolved: LandingTheme = { ...DEFAULT_LANDING_THEME, ...theme };
   const vars = themeToCssVars(resolved);
 
@@ -49,7 +52,7 @@ export function BlockRenderer({ blocks, property, theme, showHidden = false }: B
         return (
           <BlockBoundary key={block.id}>
             <div style={!block.visible && showHidden ? { opacity: 0.4 } : undefined}>
-              <Cmp config={block.config} property={property} theme={resolved} />
+              <Cmp config={block.config} property={property} theme={resolved} onSubmitLead={onSubmitLead} />
             </div>
           </BlockBoundary>
         );
