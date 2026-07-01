@@ -11,9 +11,12 @@ interface RouterGuardProps {
 }
 
 const SPECIAL_ROUTES = {
-  PUBLIC_ROUTES: ['/auth', '/login', '/register', '/widget', '/setup'],
+  // /lp (landing de anuncio) e /imovel (portal) sao publicas — visitante de
+  // anuncio NAO pode cair no /login. Sem isso so quem tem acesso ao CRM via.
+  PUBLIC_ROUTES: ['/auth', '/login', '/register', '/widget', '/setup', '/lp', '/imovel'],
   // Routes that bypass the "redirect authenticated users to /conversations" rule
-  AUTH_EXEMPT_ROUTES: ['/setup/onboarding'],
+  // (senao um usuario logado abrindo a landign era jogado pro /conversations).
+  AUTH_EXEMPT_ROUTES: ['/setup/onboarding', '/lp', '/imovel'],
 };
 
 const RouterGuard: React.FC<RouterGuardProps> = ({ children }) => {
