@@ -10,9 +10,12 @@
         "fullName": "Nome Completo",
         "displayName": "Nome de Exibição",
         "email": "Email",
+        "whatsappNumber": "WhatsApp",
         "fullNamePlaceholder": "Seu nome completo",
         "displayNamePlaceholder": "Como você quer ser chamado",
-        "emailPlaceholder": "seu@email.com"
+        "emailPlaceholder": "seu@email.com",
+        "whatsappNumberPlaceholder": "(11) 91234-5678",
+        "whatsappNumberHelp": "Usado para receber lembretes e automações no seu WhatsApp"
       },
       "actions": {
         "saveChanges": "Salvar Alterações",

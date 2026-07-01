@@ -10,9 +10,12 @@
         "fullName": "Nombre Completo",
         "displayName": "Nombre de Visualización",
         "email": "Email",
+        "whatsappNumber": "WhatsApp",
         "fullNamePlaceholder": "Su nombre completo",
         "displayNamePlaceholder": "Cómo quiere ser llamado",
-        "emailPlaceholder": "su@email.com"
+        "emailPlaceholder": "su@email.com",
+        "whatsappNumberPlaceholder": "+34 600 123 456",
+        "whatsappNumberHelp": "Se usa para recibir recordatorios y automatizaciones en su WhatsApp"
       },
       "actions": {
         "saveChanges": "Guardar Cambios",

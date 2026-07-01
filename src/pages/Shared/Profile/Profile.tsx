@@ -68,6 +68,7 @@ const Profile = () => {
     message_signature: '',
     avatar: null as File | null,
     avatar_url: '',
+    whatsapp_number: '',
     // api_access_token: '',
   });
 
@@ -168,6 +169,7 @@ const Profile = () => {
             unconfirmed_email: profileUser.unconfirmed_email || null,
             message_signature: profileUser.message_signature || '',
             avatar_url: normalizeAvatarUrl(profileUser.avatar_url),
+            whatsapp_number: (profileUser.custom_attributes?.whatsapp_number as string) || '',
             // api_access_token: profileUser.api_access_token || '',
           }));
 
@@ -348,6 +350,7 @@ const Profile = () => {
         display_name: userData.display_name,
         email: userData.email,
         message_signature: userData.message_signature,
+        whatsapp_number: userData.whatsapp_number,
       };
 
       // Add avatar if changed
@@ -382,6 +385,7 @@ const Profile = () => {
         message_signature: updatedUser.message_signature || '',
         avatar: null, // Clear file after upload
         avatar_url: normalizeAvatarUrl(updatedUser.avatar_url) || prev.avatar_url,
+        whatsapp_number: (updatedUser.custom_attributes?.whatsapp_number as string) || prev.whatsapp_number,
       }));
 
       if (updatedUser.unconfirmed_email) {
@@ -476,6 +480,20 @@ const Profile = () => {
               onChange={handleInputChange('display_name')}
               placeholder={t('personalData.fields.displayNamePlaceholder')}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp_number">{t('personalData.fields.whatsappNumber')}</Label>
+            <Input
+              id="whatsapp_number"
+              type="tel"
+              value={userData.whatsapp_number}
+              onChange={handleInputChange('whatsapp_number')}
+              placeholder={t('personalData.fields.whatsappNumberPlaceholder')}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t('personalData.fields.whatsappNumberHelp')}
+            </p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
