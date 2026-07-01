@@ -19,6 +19,7 @@ export interface LandingPageDTO {
   property_id?: string | null;
   brand_mode?: 'client' | 'development' | 'both' | null;
   indexable: boolean;
+  active: boolean;
   public_host?: string | null;
   content_blocks: unknown[];
   theme?: Partial<LandingTheme> | null;
@@ -73,10 +74,25 @@ export const landingPageService = {
         brand_mode: 'client',
         indexable: false,
         in_menu: false,
+        active: false, // rascunho até publicar
         content_blocks: defaultLandingBlocks(),
       },
     });
     return toLandingPage(unwrap<LandingPageDTO>(res));
+  },
+
+  /** Publish the landing with a chosen public name (slug). active=true. */
+  async publish(siteId: string, pageId: string, slug: string): Promise<LandingPageDTO> {
+    const res = await api.put(`/sites/${siteId}/pages/${pageId}`, {
+      page: { slug, active: true },
+    });
+    return unwrap<LandingPageDTO>(res);
+  },
+
+  /** Move back to draft (unpublish). */
+  async unpublish(siteId: string, pageId: string): Promise<LandingPageDTO> {
+    const res = await api.put(`/sites/${siteId}/pages/${pageId}`, { page: { active: false } });
+    return unwrap<LandingPageDTO>(res);
   },
 
   /** All ad landings of the site (property-linked or standalone). */
@@ -113,6 +129,7 @@ export const landingPageService = {
         brand_mode: input.brandMode ?? 'development',
         indexable: false,
         in_menu: false,
+        active: false, // nasce como rascunho até publicar
         content_blocks: defaultLandingBlocks(),
       },
     });

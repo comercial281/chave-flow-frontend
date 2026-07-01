@@ -72,6 +72,7 @@ const LandingPageEditor = lazyWithRetry(() => import('@/pages/Customer/Propertie
 const LandingByIdEditor = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/LandingByIdEditorPage'));
 const LandingsList = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/LandingsListPage'));
 const SimulatorDemo = lazyWithRetry(() => import('@/pages/Customer/Properties/LandingPageEditor/SimulatorDemoPage'));
+const LandingPublic = lazyWithRetry(() => import('@/pages/Public/LandingPublicPage'));
 const Visits = lazyWithRetry(() => import('@/pages/Customer/Visits').then(m => ({ default: m.Visits })));
 const Proposals = lazyWithRetry(() => import('@/pages/Customer/Proposals').then(m => ({ default: m.Proposals })));
 const PropertyCaptureRequests = lazyWithRetry(() => import('@/pages/Customer/PropertyCapture').then(m => ({ default: m.PropertyCaptureRequests })));
@@ -1683,6 +1684,9 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
+
+          {/* Público (sem login) — landing de anúncio hospedada. */}
+          <Route path="/lp/:tenant/:slug" element={<LandingPublic />} />
 
           <Route
             path="/visits"
