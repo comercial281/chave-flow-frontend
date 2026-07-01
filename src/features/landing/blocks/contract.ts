@@ -151,7 +151,7 @@ const valuationHistoryConfig = z.object({
 
 const trustBadgesConfig = z.object({
   items: z
-    .array(z.object({ imageUrl: z.string().url(), label: z.string().max(60).optional() }))
+    .array(z.object({ imageUrl: z.string().url().optional(), label: z.string().max(60).optional() }))
     .default([]),
 });
 
@@ -243,9 +243,15 @@ const blockInstanceSchema = z
     schemaVersion: z.number().int().default(PAGE_BLOCKS_SCHEMA_VERSION),
   })
   .transform((block) => {
-    // Validate/normalize config against the type-specific schema.
+    // Validate/normalize config against the type-specific schema. NUNCA lançar:
+    // um bloco com config parcial/inválida não pode derrubar a página inteira
+    // (NFR6). Se falhar, mantém o config cru (os componentes lidam com faltas).
     const schema = BLOCK_CONFIG_SCHEMAS[block.type];
-    return { ...block, config: schema.parse(block.config) } as BlockInstance;
+    const parsed = schema.safeParse(block.config);
+    return {
+      ...block,
+      config: parsed.success ? parsed.data : block.config,
+    } as BlockInstance;
   });
 
 export const pageBlocksSchema = z.array(blockInstanceSchema);
