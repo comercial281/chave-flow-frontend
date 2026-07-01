@@ -1,207 +1,266 @@
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import { useParams } from 'react-router-dom';
-import {
-  BlockRenderer,
-  defaultPropertyBlocks,
-  safeParsePageBlocks,
-  type BlockInstance,
-  type LandingProperty,
-  type LandingTheme,
-  type LeadSubmitPayload,
-} from '@/features/landing/blocks';
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
-interface ImovelPropertyDTO {
-  code: string;
-  title: string;
-  description?: string;
-  stage?: LandingProperty['stage'];
+/* ────────────────────────────────────────────────────────────────────────────
+   Portal Imobiliário — PÁGINA DO IMÓVEL (Produto A). Mesma pegada "Editorial
+   Estate" da home: moderna, indexável (SEO), focada em converter o lead via
+   WhatsApp + formulário. Brandável pelo registro do Site (logo/cor/WhatsApp).
+──────────────────────────────────────────────────────────────────────────── */
+
+interface Photo { file_url: string; thumbnail_url?: string | null; caption?: string | null; alt_text?: string | null; is_cover?: boolean }
+interface PropertyDTO {
+  code: string; title: string; description?: string;
+  transaction_type?: string; property_type?: string;
   sale_price?: number | null;
-  bedrooms?: number | null;
-  bathrooms?: number | null;
-  suites?: number | null;
-  parking_spaces?: number | null;
-  useful_area_m2?: number | null;
-  total_area_m2?: number | null;
-  address_neighborhood?: string;
-  address_city?: string;
-  address_state?: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  responsible_name?: string;
-  photos?: Array<{ file_url: string; thumbnail_url?: string | null; caption?: string | null; alt_text?: string | null; is_cover?: boolean }>;
+  bedrooms?: number | null; bathrooms?: number | null; suites?: number | null; parking_spaces?: number | null;
+  useful_area_m2?: number | null; total_area_m2?: number | null;
+  address_neighborhood?: string; address_city?: string; address_state?: string;
+  latitude?: number | null; longitude?: number | null;
+  responsible_name?: string; photos?: Photo[];
+}
+interface SiteInfo {
+  name?: string;
+  branding?: { logo_url?: string | null; primary_color?: string | null; accent_color?: string | null; font_family?: string | null };
+  contact?: { whatsapp?: string | null };
 }
 
-interface ImovelDTO {
-  template: unknown[];
-  theme?: Partial<LandingTheme> | null;
-  site?: { name?: string; seo_title?: string; seo_description?: string } | null;
-  property: ImovelPropertyDTO;
-}
+const API = import.meta.env.VITE_API_URL as string;
+const TYPE_LABEL: Record<string, string> = { apartment: 'Apartamento', house: 'Casa', condo: 'Casa em condomínio', land: 'Terreno', commercial: 'Comercial', studio: 'Studio', farm: 'Chácara' };
 
-function toProperty(p: ImovelPropertyDTO): LandingProperty {
-  return {
-    code: p.code,
-    title: p.title,
-    description: p.description,
-    stage: p.stage,
-    salePrice: p.sale_price ?? null,
-    bedrooms: p.bedrooms ?? null,
-    bathrooms: p.bathrooms ?? null,
-    suites: p.suites ?? null,
-    parkingSpaces: p.parking_spaces ?? null,
-    usefulAreaM2: p.useful_area_m2 ?? null,
-    totalAreaM2: p.total_area_m2 ?? null,
-    neighborhood: p.address_neighborhood,
-    city: p.address_city,
-    state: p.address_state,
-    latitude: p.latitude ?? null,
-    longitude: p.longitude ?? null,
-    responsibleName: p.responsible_name,
-    photos: (p.photos ?? []).map((ph) => ({
-      url: ph.file_url,
-      thumbnailUrl: ph.thumbnail_url ?? undefined,
-      caption: ph.caption ?? undefined,
-      alt: ph.alt_text ?? undefined,
-      isCover: ph.is_cover,
-    })),
-  };
-}
-
+function onlyDigits(s?: string | null) { return (s || '').replace(/\D/g, ''); }
+function brl(n?: number | null) { return typeof n === 'number' ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : null; }
 function setMeta(name: string, content: string) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-  if (!el) {
-    el = document.createElement('meta');
-    el.name = name;
-    document.head.appendChild(el);
-  }
+  if (!el) { el = document.createElement('meta'); el.name = name; document.head.appendChild(el); }
   el.content = content;
-  return el;
 }
 
-/** Página pública INDEXÁVEL de um imóvel do portal (Produto A). Renderiza o
- *  template único do site + os dados do imóvel. Ao contrário da landing de
- *  anúncio, esta página é feita para ranquear no Google. */
+const I = {
+  bed: 'M2 17v-5a2 2 0 0 1 2-2h11a3 3 0 0 1 3 3v4M2 21v-4M22 21v-6M2 12V7m4 3V8a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2',
+  bath: 'M4 12V5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3ZM6 21l-1 1M18 21l1 1',
+  car: 'M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM17 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 15h12M3 15l1.5-5A2 2 0 0 1 6.4 8.6h9.2a2 2 0 0 1 1.9 1.4L19 15',
+  ruler: 'M3 3h4v4M3 3l7 7M21 21h-4v-4M21 21l-7-7M3 21v-4M3 21h4M21 3h-4M21 3v4',
+  pin: 'M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11ZM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
+  wa: 'M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.3A10 10 0 1 0 12 2Zm5.5 14.2c-.2.6-1.2 1.2-1.7 1.2-.9.1-1 .4-3.6-.9-2.6-1.4-4.1-4.1-4.2-4.3-.1-.2-1-1.3-1-2.5s.6-1.8.9-2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.2.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2 1.3 2.3 1.5.2.1.4.1.5-.1l.7-.8c.2-.2.4-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.2.1.7-.1 1.3Z',
+  back: 'M15 18l-6-6 6-6',
+};
+function Ic({ d, s = 18, cls = '' }: { d: string; s?: number; cls?: string }) {
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" className={cls}><path d={d} /></svg>;
+}
+
 export default function ImovelPublicPage() {
   const { tenant, code } = useParams<{ tenant: string; code: string }>();
   const [state, setState] = useState<'loading' | 'ok' | 'notfound'>('loading');
-  const [blocks, setBlocks] = useState<BlockInstance[]>([]);
-  const [theme, setTheme] = useState<Partial<LandingTheme>>({});
-  const [property, setProperty] = useState<LandingProperty | null>(null);
-  const cookie = (name: string) =>
-    document.cookie.split('; ').find((c) => c.startsWith(`${name}=`))?.split('=')[1];
+  const [site, setSite] = useState<SiteInfo>({});
+  const [prop, setProp] = useState<PropertyDTO | null>(null);
+  const [active, setActive] = useState(0);
 
-  const onCtaClick = (e: ReactMouseEvent) => {
-    const el = (e.target as HTMLElement).closest('[data-lp-action]') as HTMLElement | null;
-    if (!el) return;
-    const action = el.getAttribute('data-lp-action');
-    const wa = el.getAttribute('data-whatsapp-phone');
-    if (action === 'whatsapp' && wa) {
-      e.preventDefault();
-      window.open(`https://wa.me/${wa.replace(/\D/g, '')}`, '_blank');
-      return;
-    }
-    if (action === 'open_form') {
-      e.preventDefault();
-      document.getElementById('lp-lead-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  // Lead de interesse no imóvel → mesmo endpoint público de lead do site.
-  const onSubmitLead = async (payload: LeadSubmitPayload) => {
-    if (!tenant || !code) return;
-    const base = import.meta.env.VITE_API_URL as string;
-    const params = new URLSearchParams(window.location.search);
-    await fetch(`${base}/api/public/v1/site/leads`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Tenant': tenant },
-      body: JSON.stringify({
-        lead: {
-          name: payload.name,
-          phone: payload.phone,
-          email: payload.email,
-          source: 'portal',
-          form_type: 'imovel',
-          property_code: code,
-          utm_source: params.get('utm_source') ?? undefined,
-          utm_medium: params.get('utm_medium') ?? undefined,
-          utm_campaign: params.get('utm_campaign') ?? undefined,
-          message: `Interesse no imóvel ${code}`,
-          form_data: {
-            answers: payload.answers,
-            fbp: cookie('_fbp') ?? null,
-            fbc: cookie('_fbc') ?? null,
-            referrer: document.referrer || null,
-            page_url: window.location.href,
-          },
-        },
-      }),
-    });
-  };
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    let alive = true;
     (async () => {
       if (!tenant || !code) return;
       try {
-        const base = import.meta.env.VITE_API_URL as string;
-        const res = await fetch(`${base}/api/public/v1/site/imovel/${encodeURIComponent(code)}`, {
-          headers: { 'X-Tenant': tenant },
-        });
-        if (!res.ok) {
-          if (active) setState('notfound');
-          return;
-        }
-        const json = (await res.json()) as { data: ImovelDTO };
-        const dto = json.data;
-        if (!active) return;
-        // Site sem template customizado -> renderiza o template padrão do portal.
-        const parsed = safeParsePageBlocks(dto.template);
-        setBlocks(parsed.length ? parsed : defaultPropertyBlocks());
-        setTheme(dto.theme ?? {});
-        setProperty(toProperty(dto.property));
+        const [siteRes, imovelRes] = await Promise.all([
+          fetch(`${API}/api/public/v1/site`, { headers: { 'X-Tenant': tenant } }),
+          fetch(`${API}/api/public/v1/site/imovel/${encodeURIComponent(code)}`, { headers: { 'X-Tenant': tenant } }),
+        ]);
+        if (!alive) return;
+        if (!imovelRes.ok) { setState('notfound'); return; }
+        const imovel = (await imovelRes.json()).data as { property: PropertyDTO; site?: { name?: string } };
+        const siteInfo = siteRes.ok ? ((await siteRes.json()).data as SiteInfo) : {};
+        setSite({ ...siteInfo, name: siteInfo.name || imovel.site?.name });
+        setProp(imovel.property);
 
-        // SEO: título/descrição por imóvel + canonical. Indexável.
-        const siteName = dto.site?.name ?? 'Imóveis';
-        document.title = `${dto.property.title} · ${siteName}`;
-        const desc = (dto.property.description || dto.site?.seo_description || '')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 160);
+        const siteName = siteInfo.name || imovel.site?.name || 'Imóveis';
+        document.title = `${imovel.property.title} · ${siteName}`;
+        const desc = (imovel.property.description || '').replace(/\s+/g, ' ').trim().slice(0, 160);
         if (desc) setMeta('description', desc);
-        const robots = setMeta('robots', 'index,follow');
+        setMeta('robots', 'index,follow');
         setState('ok');
-        return () => {
-          robots.content = 'index,follow';
-        };
-      } catch {
-        if (active) setState('notfound');
-      }
+      } catch { if (alive) setState('notfound'); }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { alive = false; };
   }, [tenant, code]);
 
-  if (state === 'loading') {
-    return <div className="flex min-h-screen items-center justify-center text-neutral-400">Carregando…</div>;
-  }
-  if (state === 'notfound') {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-6 text-center text-neutral-500">
-        Imóvel não encontrado.
+  const brand = site.branding?.primary_color || '#0E7C5A';
+  const font = site.branding?.font_family || 'Inter, system-ui, sans-serif';
+  const wa = site.contact?.whatsapp;
+  const waHref = useMemo(() => {
+    if (!wa || !prop) return null;
+    return `https://wa.me/${onlyDigits(wa)}?text=${encodeURIComponent(`Olá! Tenho interesse no imóvel ${prop.code} — ${prop.title}.`)}`;
+  }, [wa, prop]);
+
+  const submitLead = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!tenant || !code || !name.trim() || !phone.trim()) return;
+    const params = new URLSearchParams(window.location.search);
+    try {
+      await fetch(`${API}/api/public/v1/site/leads`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant': tenant },
+        body: JSON.stringify({ lead: {
+          name, phone, source: 'portal', form_type: 'imovel', property_code: code,
+          message: `Interesse no imóvel ${code}`,
+          utm_source: params.get('utm_source') ?? undefined, utm_campaign: params.get('utm_campaign') ?? undefined,
+          form_data: { page_url: window.location.href, referrer: document.referrer || null },
+        } }),
+      });
+      setSent(true);
+    } catch { /* silencioso */ }
+  };
+
+  if (state === 'loading') return <div className="flex min-h-screen items-center justify-center text-neutral-400" style={{ fontFamily: 'system-ui' }}>Carregando…</div>;
+  if (state === 'notfound' || !prop) return <div className="flex min-h-screen items-center justify-center px-6 text-center text-neutral-500" style={{ fontFamily: 'system-ui' }}>Imóvel não encontrado.</div>;
+
+  const cssVars = { ['--brand' as string]: brand, ['--ink' as string]: '#17140F', ['--paper' as string]: '#FAF7F2', ['--display' as string]: 'Fraunces, Georgia, serif', fontFamily: font } as CSSProperties;
+  const photos = prop.photos ?? [];
+  const cover = photos[active] || photos[0];
+  const local = [prop.address_neighborhood, prop.address_city, prop.address_state].filter(Boolean).join(', ');
+  const typeLabel = TYPE_LABEL[prop.property_type || ''] || prop.property_type || 'Imóvel';
+  const price = brl(prop.sale_price);
+  const specs = [
+    prop.bedrooms ? { d: I.bed, label: `${prop.bedrooms} ${prop.bedrooms > 1 ? 'quartos' : 'quarto'}` } : null,
+    prop.suites ? { d: I.bath, label: `${prop.suites} ${prop.suites > 1 ? 'suítes' : 'suíte'}` } : null,
+    prop.parking_spaces ? { d: I.car, label: `${prop.parking_spaces} ${prop.parking_spaces > 1 ? 'vagas' : 'vaga'}` } : null,
+    prop.useful_area_m2 ? { d: I.ruler, label: `${prop.useful_area_m2} m²` } : null,
+  ].filter(Boolean) as { d: string; label: string }[];
+
+  const ContactForm = (
+    sent ? (
+      <div className="rounded-2xl bg-white p-6 text-center ring-1 ring-black/[0.06]">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full" style={{ background: '#25D366' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+        </div>
+        <p className="font-semibold text-[var(--ink)]">Recebemos seu interesse!</p>
+        <p className="mt-1 text-sm text-neutral-500">Um especialista vai te chamar em breve.</p>
       </div>
-    );
-  }
+    ) : (
+      <form onSubmit={submitLead} className="space-y-3">
+        <input value={name} onChange={e => setName(e.target.value)} required placeholder="Seu nome" className="w-full rounded-xl border border-black/10 px-4 py-3 text-[15px] outline-none focus:border-[var(--brand)]" />
+        <input value={phone} onChange={e => setPhone(e.target.value)} required inputMode="tel" placeholder="Seu WhatsApp" className="w-full rounded-xl border border-black/10 px-4 py-3 text-[15px] outline-none focus:border-[var(--brand)]" />
+        <button type="submit" className="w-full rounded-xl py-3.5 text-[15px] font-semibold text-white transition-opacity hover:opacity-90" style={{ background: 'var(--brand)' }}>Tenho interesse</button>
+        {waHref && <a href={waHref} target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-semibold text-white" style={{ background: '#25D366' }}><Ic d={I.wa} s={18} /> Chamar no WhatsApp</a>}
+      </form>
+    )
+  );
 
   return (
-    <div
-      className="flex min-h-screen w-full justify-center"
-      style={{ background: theme.bgEnd ?? '#FFFFFF' }}
-      onClickCapture={onCtaClick}
-    >
-      <div className="relative w-full max-w-[460px] shadow-2xl">
-        <BlockRenderer blocks={blocks} property={property} theme={theme} onSubmitLead={onSubmitLead} />
+    <div style={cssVars} className="min-h-screen bg-[var(--paper)] pb-24 text-[var(--ink)] antialiased lg:pb-0">
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet" />
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-[var(--paper)]/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link to={`/portal/${tenant}`} className="flex items-center gap-2.5">
+            {site.branding?.logo_url
+              ? <img src={site.branding.logo_url} alt={site.name || ''} className="h-9 w-auto max-w-[150px] object-contain" />
+              : <span className="font-[var(--display)] text-xl font-semibold tracking-tight">{site.name || 'Imóveis'}</span>}
+          </Link>
+          {waHref && (
+            <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold text-white" style={{ background: '#25D366' }}>
+              <Ic d={I.wa} s={16} /> <span className="hidden sm:inline">WhatsApp</span>
+            </a>
+          )}
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <Link to={`/portal/${tenant}`} className="mb-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-neutral-500 hover:text-[var(--brand)]">
+          <Ic d={I.back} s={16} /> Voltar aos imóveis
+        </Link>
+
+        {/* Galeria */}
+        {cover && (
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div className="overflow-hidden rounded-[20px] bg-neutral-100">
+              <img src={cover.file_url} alt={cover.alt_text || prop.title} className="h-[280px] w-full object-cover sm:h-[440px]" />
+            </div>
+            {photos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto sm:max-h-[440px] sm:w-24 sm:flex-col sm:overflow-y-auto">
+                {photos.slice(0, 8).map((ph, i) => (
+                  <button key={i} type="button" onClick={() => setActive(i)}
+                    className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl sm:h-16 sm:w-full ${i === active ? 'ring-2 ring-[var(--brand)]' : 'ring-1 ring-black/[0.06] opacity-80'}`}>
+                    <img src={ph.thumbnail_url || ph.file_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
+          {/* Conteúdo */}
+          <div>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">{typeLabel}</span>
+            <h1 className="mt-1.5 font-[var(--display)] text-3xl font-semibold leading-tight sm:text-4xl">{prop.title}</h1>
+            {local && <p className="mt-2 flex items-center gap-1.5 text-[15px] text-neutral-500"><Ic d={I.pin} s={16} /> {local}</p>}
+
+            {specs.length > 0 && (
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {specs.map((s, i) => (
+                  <div key={i} className="rounded-2xl bg-white p-4 ring-1 ring-black/[0.06]">
+                    <span className="text-[var(--brand)]"><Ic d={s.d} s={20} /></span>
+                    <div className="mt-2 text-[14px] font-semibold text-[var(--ink)]">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {prop.description && (
+              <section className="mt-9">
+                <h2 className="font-[var(--display)] text-2xl font-semibold">Sobre o imóvel</h2>
+                <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-neutral-700">{prop.description}</p>
+              </section>
+            )}
+
+            {typeof prop.latitude === 'number' && typeof prop.longitude === 'number' && (
+              <section className="mt-9">
+                <h2 className="font-[var(--display)] text-2xl font-semibold">Localização</h2>
+                {local && <p className="mt-1 text-[14px] text-neutral-500">{local}</p>}
+                <div className="mt-3 overflow-hidden rounded-[20px] ring-1 ring-black/[0.06]">
+                  <iframe title="Mapa" width="100%" height="300" loading="lazy" style={{ border: 0 }}
+                    src={`https://www.google.com/maps?q=${prop.latitude},${prop.longitude}&z=15&output=embed`} />
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Card de contato (sticky no desktop) */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 rounded-[22px] bg-white p-6 shadow-[0_20px_45px_-25px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]">
+              {price && <div className="font-[var(--display)] text-3xl font-semibold text-[var(--ink)]">{price}</div>}
+              <div className="mt-1 text-[13px] text-neutral-500">Código {prop.code}</div>
+              <div className="my-4 border-t border-black/[0.06]" />
+              <p className="mb-3 text-[14px] font-medium text-neutral-600">Fale com um especialista sobre este imóvel</p>
+              {ContactForm}
+              {prop.responsible_name && <p className="mt-4 text-center text-[12px] text-neutral-400">Atendimento: {prop.responsible_name}</p>}
+            </div>
+          </aside>
+        </div>
+
+        {/* Form no fluxo (mobile) */}
+        <section id="contato" className="mt-10 rounded-[22px] bg-white p-6 ring-1 ring-black/[0.06] lg:hidden">
+          {price && <div className="font-[var(--display)] text-2xl font-semibold">{price}</div>}
+          <p className="mb-3 mt-1 text-[14px] text-neutral-500">Fale com um especialista sobre este imóvel</p>
+          {ContactForm}
+        </section>
+      </main>
+
+      {/* Barra fixa (mobile) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-black/[0.06] bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+        {price && <div className="flex-1"><div className="text-[11px] text-neutral-400">a partir de</div><div className="font-[var(--display)] text-lg font-semibold leading-none">{price}</div></div>}
+        {waHref
+          ? <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold text-white" style={{ background: '#25D366' }}><Ic d={I.wa} s={17} /> WhatsApp</a>
+          : <a href="#contato" className="rounded-full px-5 py-2.5 text-[14px] font-semibold text-white" style={{ background: 'var(--brand)' }}>Tenho interesse</a>}
       </div>
+
+      <footer className="border-t border-black/[0.06] bg-white py-6 text-center text-[12px] text-neutral-400">
+        © {site.name || 'Portal'} — feito com LM Flow.
+      </footer>
     </div>
   );
 }
